@@ -3,7 +3,7 @@
 
 Uso: python3 qa_deck.py deck.pptx [--fonte "Gill Sans MT"] [--ttf regular.ttf] [--ttf-bold bold.ttf]
 
-Confere: ocupacao da area util (>= 80%, ERRO abaixo), maior area vazia, grade de 4+ cards identicos (ERRO), divisao 'livre' em mais de 2 slides (ERRO); fonte unica; texto abaixo de 7pt; densidade (palavras por slide); habitos de IA (setas gordas, cards identicos); hierarquia (titulo maior que todo outro texto do slide); formas fora da area
+Confere: lacunas (quadrante ou card com pouco conteudo e vazio grande dentro: ERRO), grade de 4+ cards identicos (ERRO), divisao 'livre' em mais de 2 slides (ERRO); fonte unica; texto abaixo de 7pt; densidade (palavras por slide); habitos de IA (setas gordas, cards identicos); hierarquia (titulo maior que todo outro texto do slide); formas fora da area
 util; possivel estouro de texto (estimativa, exata com --ttf); e lista as pendencias por slide (placeholders e [DADO: ...]).
 Sai com codigo 1 se houver ERRO.
 """
@@ -209,10 +209,14 @@ for n in slides:
         grandes = [z_ for z_ in outros if z_ > (16.5 if IJ else 12.5)]
         if len(grandes) > 6: avisos.append(f'slide {idx}: {len(grandes)} textos grandes no miolo: o corpo das referencias e ' + ('11-12pt (Insper Jr)' if IJ else '9pt (legenda 8pt)') + '; numero grande so 1 ou 2 por bloco')
 
-# ---- geometria (22/11/2026): ocupacao >= 80% da area util, maior vazio, grade de cards identicos ----
-MX0, MX1, MY1, PASSO, FOLGA = 0.64, 12.78, 6.75, 0.05, 0.12
+# ---- geometria (22/11/2026, revisada): LACUNAS, nao percentual do slide ----
+# O usuario aceita slide com menos area ocupada (diagrama com respiro, escada, imagem com margem). O que nao aceita e LACUNA:
+# um quadrante ou um card com 1 frase e o resto em branco. Por isso o QA mede DENTRO de cada quadrante (blocos_deck.json,
+# gravado pelo moldura.js) e DENTRO de cada card/painel preenchido, nao o slide inteiro.
+MX0, MX1, MY1, PASSO, FOLGA = 0.64, 12.78, 6.75, 0.05, 0.10
 IGNORAR = ('TITULO', 'APOIO', 'FONTES', 'NOTAS', 'FLUXO')
 RET = ('rect', 'roundRect', 'snip1Rect', 'snip2SameRect', 'round1Rect', 'round2SameRect')
+LACUNA_BLOCO, LACUNA_CARD, VAZIO_MIN = 0.45, 0.40, 0.35   # ocupacao minima do conteudo e maior vazio tolerado (fracao da area)
 
 def caixa_g(e):
     x = e.find('p:grpSpPr/a:xfrm', NS) if e.tag == '{%s}grpSp' % P else None
@@ -228,8 +232,8 @@ def preenchido(e):
     return ln is not None and ln.find('a:noFill', NS) is None and ln.find('a:solidFill', NS) is not None
 
 def maior_vazio(occ):
-    """maior retangulo de celulas vazias (algoritmo do histograma): (area_celulas, x, y, w, h) em celulas"""
-    ny, nx = len(occ), len(occ[0]); alt = [0] * nx; melhor = (0, 0, 0, 0, 0)
+    """maior retangulo de celulas vazias (histograma): (area_celulas, i, j, w, h)"""
+    ny, nx = len(occ), len(occ[0]) if occ else 0; alt = [0] * nx; melhor = (0, 0, 0, 0, 0)
     for j in range(ny):
         for i in range(nx): alt[i] = 0 if occ[j][i] else alt[i] + 1
         pilha = []
@@ -242,67 +246,109 @@ def maior_vazio(occ):
             pilha.append((ini, hh))
     return melhor
 
-def geometria(idx, root):
-    arvore = root.find('p:cSld/p:spTree', NS)
-    y0 = 1.25
-    for e in arvore:
-        c = e.find('.//p:cNvPr', NS)
-        if c is not None and c.get('name') == 'APOIO' and caixa(e): bx = caixa(e); y0 = max(y0, min(bx[1] + bx[3] + 0.05, 1.6))
-    nx, ny = int((MX1 - MX0) / PASSO), int((MY1 - y0) / PASSO)
-    if nx < 1 or ny < 1: return None
-    occ = [[False] * nx for _ in range(ny)]
-    cards = {}
-    for e in arvore:
-        if e.tag not in ('{%s}sp' % P, '{%s}pic' % P, '{%s}graphicFrame' % P, '{%s}grpSp' % P): continue
+def elementos_do_slide(root):
+    """lista de (nome, caixa, caixa_efetiva, preenchido, eh_card): texto sem fundo conta so a altura que o texto ocupa"""
+    out = []
+    for e in root.find('p:cSld/p:spTree', NS):
+        if e.tag not in ('{%s}sp' % P, '{%s}pic' % P, '{%s}graphicFrame' % P, '{%s}grpSp' % P, '{%s}cxnSp' % P): continue
         c = e.find('.//p:cNvPr', NS); nome = c.get('name', '') if c is not None else ''
         if nome in IGNORAR or nome.startswith(('BL_', 'BARRA', 'MARC_', 'GR_marcador', 'Slide Number', 'VEU')): continue
         bx = caixa_g(e)
-        if not bx: continue
-        x, y, w, h = bx
-        if w * h > 0.9 * 13.333 * 7.5: continue   # fundo de slide inteiro
-        if e.tag == '{%s}sp' % P:
+        if not bx or bx[2] * bx[3] > 0.9 * 13.333 * 7.5: continue
+        x, y, w, h = bx; ef = bx; pre = e.tag != '{%s}sp' % P or preenchido(e); card = False
+        if e.tag == '{%s}cxnSp' % P:
+            ef = (x, y, max(w, 0.04), max(h, 0.04)); pre = True
+        elif e.tag == '{%s}sp' % P:
             paras = paragrafos(e)
             tem_txt = any(t.strip() for r in paras for t, _, _ in r)
-            if not preenchido(e):
+            if not pre:
                 if not tem_txt: continue
                 bp = e.find('p:txBody/a:bodyPr', NS)
-                nec = altura_necessaria(paras, max(w - 0.2, 0.2)) + 0.1
-                hh = min(h, nec); anc = bp.get('anchor', 't') if bp is not None else 't'
-                y = y + (h - hh) / 2 if anc == 'ctr' else (y + h - hh if anc == 'b' else y); h = hh
+                hh = min(h, altura_necessaria(paras, max(w - 0.2, 0.2)) + 0.1)
+                anc = bp.get('anchor', 't') if bp is not None else 't'
+                ef = (x, y + (h - hh) / 2 if anc == 'ctr' else (y + h - hh if anc == 'b' else y), w, hh)
             g = e.find('p:spPr/a:prstGeom', NS)
-            if g is not None and g.get('prst') in RET and preenchido(e) and w >= 1.2 and h >= 1.2 and not nome.endswith('_sombra') and not nome.startswith(('PH_', 'MIDIA_')):
-                cards.setdefault((round(w / 0.05), round(h / 0.05), round(y / 0.05)), set()).add(round(x / 0.05))
-        i0 = max(0, int((x - FOLGA - MX0) / PASSO)); i1 = min(nx, int((x + w + FOLGA - MX0) / PASSO) + 1)
-        j0 = max(0, int((y - FOLGA - y0) / PASSO)); j1 = min(ny, int((y + h + FOLGA - y0) / PASSO) + 1)
+            card = (g is not None and g.get('prst') in RET and preenchido(e) and w * h >= 2.5 and min(w, h) >= 0.9
+                    and not nome.endswith('_sombra') and not nome.startswith(('PH_', 'MIDIA_')) and e.find('p:spPr/a:blipFill', NS) is None)
+        out.append((nome, bx, ef, pre, card, e))
+    return out
+
+def ocupacao_em(rect, elems, excluir=()):
+    """fracao de rect coberta pelas caixas efetivas dos elementos (com folga) e maior vazio dentro dele"""
+    rx, ry, rw, rh = rect
+    nx, ny = max(1, int(rw / PASSO)), max(1, int(rh / PASSO))
+    occ = [[False] * nx for _ in range(ny)]
+    for nome, bx, ef, pre, card, e in elems:
+        if e in excluir: continue
+        x, y, w, h = ef
+        if x >= rx + rw or x + w <= rx or y >= ry + rh or y + h <= ry: continue
+        if pre and e is not None and e.tag == '{%s}sp' % P:   # fundo ou sombra do proprio bloco/card: preenchimento que cobre quase tudo nao e conteudo
+            ix = max(0, min(bx[0] + bx[2], rx + rw) - max(bx[0], rx)); iy = max(0, min(bx[1] + bx[3], ry + rh) - max(bx[1], ry))
+            if ix * iy >= 0.75 * rw * rh: continue
+        i0 = max(0, int((x - FOLGA - rx) / PASSO)); i1 = min(nx, int((x + w + FOLGA - rx) / PASSO) + 1)
+        j0 = max(0, int((y - FOLGA - ry) / PASSO)); j1 = min(ny, int((y + h + FOLGA - ry) / PASSO) + 1)
         for j in range(j0, j1):
             linha = occ[j]
             for i in range(i0, i1): linha[i] = True
-    total = nx * ny
-    ocup = sum(map(sum, occ)) / total
+    tot = nx * ny
     a, vi, vj, vw, vh = maior_vazio(occ)
-    grade = max((len(v) for v in cards.values()), default=0)
-    return ocup, a / total, (MX0 + vi * PASSO, y0 + vj * PASSO, vw * PASSO, vh * PASSO), grade
+    return sum(map(sum, occ)) / tot, a / tot, (rx + vi * PASSO, ry + vj * PASSO, vw * PASSO, vh * PASSO)
+
+_bl_arq = os.path.join(os.path.dirname(os.path.abspath(args.deck)), 'blocos_deck.json')
+try: BLOCOS = json.load(open(_bl_arq, encoding='utf8')) if os.path.exists(_bl_arq) else {}
+except Exception: BLOCOS = {}
 
 for n in slides:
     idx = numero(n)
     root = etree.fromstring(z.read(n))
     nomes_s = {c.get('name') for c in root.iter('{%s}cNvPr' % P)}
     if idx in sumarios or 'CAPA_TITULO' in nomes_s or 'TITULO' not in nomes_s: continue
-    r = geometria(idx, root)
-    if not r: continue
-    ocup, vazio, (vx, vy, vw, vh), grade = r
-    pct = int(ocup * 100)   # arredonda para baixo: 79,6% aparece como 79%
-    infos.append(f'slide {idx}: ocupacao {pct}% da area util; maior vazio {vazio:.0%}')
-    if ocup < 0.80: erros.append(f'slide {idx}: ocupa so {pct}% da area util (minimo 80%, pedido do usuario): aumente o exhibit principal ou a imagem, junte outro exhibit ou mude a divisao; se faltar conteudo, junte com o slide vizinho')
-    elif vazio > 0.12: avisos.append(f'slide {idx}: area vazia de {vw:.1f} x {vh:.1f} pol em x {vx:.1f}, y {vy:.1f} ({vazio:.0%} da area util): ocupe ou redistribua')
-    # modo sketch (16/11/2026): titulo e hipotese com a lacuna dentro; exhibit desenhado, nao caixa vazia de analise
+    elems = elementos_do_slide(root)
+    # 1. slide inteiro: so informativo (diagrama com respiro e aceito)
+    y0 = 1.25
+    for e in root.iter('{%s}sp' % P):
+        c = e.find('.//p:cNvPr', NS)
+        if c is not None and c.get('name') == 'APOIO' and caixa(e): bx = caixa(e); y0 = max(y0, min(bx[1] + bx[3] + 0.05, 1.6))
+    oc, vz, _ = ocupacao_em((MX0, y0, MX1 - MX0, MY1 - y0), elems)
+    infos.append(f'slide {idx}: ocupacao {int(oc * 100)}% da area util; maior vazio {int(vz * 100)}%')
+    # 2. quadrantes (blocos_deck.json): 1 frase e o resto em branco = lacuna
+    lac = 0
+    for k, r in enumerate(BLOCOS.get(str(idx), []), 1):
+        if r['w'] * r['h'] < 1.5: continue
+        o, v, (vx, vy, vw, vh) = ocupacao_em((r['x'], r['y'], r['w'], r['h']), elems)
+        if o < LACUNA_BLOCO and v > VAZIO_MIN and min(vw, vh) >= 0.8:
+            erros.append(f'slide {idx}: quadrante {k} com lacuna: o conteudo ocupa {int(o * 100)}% dele e sobra um vazio de {vw:.1f} x {vh:.1f} pol. Complete com exhibit, imagem ou card, junte com o quadrante vizinho ou mude a divisao'); lac += 1
+    # 3. cards e paineis preenchidos: card grande com 1 linha dentro = lacuna
+    vistos = []
+    for nome, bx, ef, pre, card, e in elems:
+        if not card: continue
+        if any(abs(bx[0] - v[0]) < 0.15 and abs(bx[1] - v[1]) < 0.15 and abs(bx[2] - v[2]) < 0.15 and abs(bx[3] - v[3]) < 0.15 for v in vistos): continue   # sombra do mesmo card
+        vistos.append(bx)
+        o, v, (vx, vy, vw, vh) = ocupacao_em(bx, elems, excluir=(e,))
+        # o texto do proprio card (cabecalho escrito nele) conta pela altura que ocupa
+        paras = paragrafos(e)
+        if any(t.strip() for r in paras for t, _, _ in r):
+            hh = min(bx[3], altura_necessaria(paras, max(bx[2] - 0.2, 0.2)) + 0.1)
+            o += (hh * bx[2]) / (bx[2] * bx[3]) * 0.9
+        if o < LACUNA_CARD and v > VAZIO_MIN and min(vw, vh) >= 0.8:
+            erros.append(f'slide {idx}: card/painel "{nome}" ({bx[2]:.1f} x {bx[3]:.1f} pol) com lacuna: o conteudo ocupa {int(o * 100)}% dele. Encha com exhibit, imagem ou texto estruturado, ou reduza o card e redistribua'); lac += 1
+    # 4. sem quadrantes registrados: vazio grande no slide vira aviso (olhar no render)
+    if not BLOCOS.get(str(idx)) and not lac:
+        o, v, (vx, vy, vw, vh) = ocupacao_em((MX0, y0, MX1 - MX0, MY1 - y0), elems)
+        if v > 0.15 and min(vw, vh) >= 1.5: avisos.append(f'slide {idx}: area vazia de {vw:.1f} x {vh:.1f} pol em x {vx:.1f}, y {vy:.1f}: confira no render se e respiro intencional ou lacuna')
+    # 5. grade de cards identicos
+    grupos = {}
+    for nome, bx, ef, pre, card, e in elems:
+        if card and bx[2] >= 1.2 and bx[3] >= 1.2: grupos.setdefault((round(bx[2] / 0.05), round(bx[3] / 0.05), round(bx[1] / 0.05)), set()).add(round(bx[0] / 0.05))
+    grade = max((len(v) for v in grupos.values()), default=0)
+    if grade >= 4: erros.append(f'slide {idx}: grade de {grade} cards identicos lado a lado (proibido: cara de IA). Varie o peso dos cards (um principal maior), use cards de tipos diferentes ou outra organizacao (references/arranjos.md)')
+    # 6. modo sketch: titulo e hipotese com a lacuna dentro; exhibit desenhado, nao caixa vazia de analise
     tit = ''.join(t.text or '' for e in root.iter('{%s}sp' % P) if (e.find('.//p:cNvPr', NS) is not None and e.find('.//p:cNvPr', NS).get('name') == 'TITULO') for t in e.iter('{%s}t' % A)).strip()
     if re.match(r'^\[\s*T[IÍ]TULO', tit, re.I): erros.append(f'slide {idx}: titulo e so o placeholder "{tit[:40]}": escreva a hipotese de conclusao com a lacuna dentro (ex.: "A demanda cresce [DADO: % a.a.] e abre espaco para ...")')
     for e in root.iter('{%s}sp' % P):
         bx = caixa(e); tx = ''.join(t.text or '' for t in e.iter('{%s}t' % A)).strip()
         if bx and bx[2] * bx[3] >= 3.0 and re.match(r'^\[\s*AN[AÁ]LISE', tx, re.I) and len(tx) < 160:
             avisos.append(f'slide {idx}: caixa de {bx[2]:.1f} x {bx[3]:.1f} pol so com "{tx[:50]}": no sketch, desenhe o exhibit esqueleto (grafico com [DADO], quadro com as linhas certas) em vez de caixa vazia'); break
-    if grade >= 4: erros.append(f'slide {idx}: grade de {grade} cards identicos lado a lado (proibido: cara de IA). Varie o peso dos cards (um principal maior), use cards de tipos diferentes ou outra organizacao (references/arranjos.md)')
 
 # Cores de fotos e logos não entram na checagem; somente preenchimentos nativos grandes.
 ident_arq=os.path.join(os.path.dirname(os.path.abspath(args.deck)),'identidade_visual.json')

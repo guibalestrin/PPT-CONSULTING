@@ -2,7 +2,7 @@
 empacotar.ps1 -- gera o ZIP da skill a partir desta fonte unica (pasta skill\, versionada com git).
 Uso: powershell -ExecutionPolicy Bypass -File skill\_dev\empacotar.ps1 [-Versao 2026.11.22]
 Saida: Consultoria - SKILL\dist\slides-consultoria-br_<versao>.zip (SKILL.md na raiz, como o Claude espera).
-Fica fora do ZIP: .git, .gitignore, .gitattributes, _dev\, node_modules, __pycache__.
+Fica fora do ZIP: .git, .gitignore, .gitattributes, README.md, _dev\, node_modules, __pycache__.
 Depois: Claude > Configuracoes > Capacidades > Skills > substituir slides-consultoria-br pelo ZIP novo.
 #>
 param([string]$Versao = (Get-Date -Format 'yyyy.MM.dd'))
@@ -21,7 +21,7 @@ Pop-Location
 if ($sujo) { Write-Warning 'Ha mudancas nao commitadas na fonte: o ZIP vai incluir arquivos que nao estao no historico.' }
 
 Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
-$fora = '^(\.git(/|$)|\.gitignore$|\.gitattributes$|_dev/|.*node_modules/|.*__pycache__/)'
+$fora = '^(\.git(/|$)|\.gitignore$|\.gitattributes$|README\.md$|_dev/|.*node_modules/|.*__pycache__/)'
 $arquivos = Get-ChildItem $Fonte -Recurse -File | ForEach-Object {
   $rel = $_.FullName.Substring($Fonte.Length + 1) -replace '\\', '/'
   if ($rel -notmatch $fora) { [pscustomobject]@{ Caminho = $_.FullName; Rel = $rel } }

@@ -754,7 +754,14 @@ module.exports = function (cfg) {
       return { x: r.x, y: r.y + HDR_DY, w: r.w, h: r.h - HDR_DY };
     });
   }
-  function blocos(s, tipo, itens, o = {}) {
+  // areas internas dos quadrantes de cada slide: o QA usa (blocos_deck.json) para achar quadrante com lacuna (1 frase e o resto em branco)
+  const AREAS_BLOCOS = [];
+  function blocos(s, ...args) {
+    const out = blocosBase(s, ...args);
+    try { AREAS_BLOCOS.push({ s, rects: out.filter(r => r && r.w && r.h).map(r => ({ x: +r.x.toFixed(3), y: +r.y.toFixed(3), w: +r.w.toFixed(3), h: +r.h.toFixed(3) })) }); } catch (e) { }
+    return out;
+  }
+  function blocosBase(s, tipo, itens, o = {}) {
     if (Array.isArray(tipo)) { o = itens || {}; itens = tipo; tipo = s.__quad ? s.__quad.chave : undefined; }
     if (s.__quad && (tipo === undefined || tipo === s.__quad.chave)) return blocosLayout(s, itens);
     if (!tipo) throw new Error('blocos(s, itens): o slide nao usa layout de quadrantes; informe a divisao: blocos(s, \'2c\', itens)');
@@ -857,6 +864,7 @@ module.exports = function (cfg) {
     if (nConteudo >= 5 && usadas.length === 0) console.warn(`AVISO: ${nConteudo} slides de conteudo e nenhuma forma do framework (lajesEmpilhadas, colunasEquacao, cardsLigados, chipsHexagonais...) nem das formas novas (deck.N.piramideFacetada, funilTroncos, sanfona...). Releia a tabela "Formas do framework" do SKILL.md e veja se algum slide e hierarquia, funil, camadas, pilares ou etapas; se nenhum for, siga (nao force).`);
     else console.log(`formas do framework usadas: ${usadas.length} de ${FORMAS_FRAMEWORK.length}${usadas.length ? ' (' + usadas.join(', ') + ')' : ''}`);
     await pres.writeFile({ fileName: arquivo });
+    try { const bl = {}; AREAS_BLOCOS.forEach(a => { const n = pres.slides.indexOf(a.s) + 1; if (n > 0) bl[n] = (bl[n] || []).concat(a.rects); }); fs.writeFileSync(path.join(path.dirname(path.resolve(arquivo)), 'blocos_deck.json'), JSON.stringify(bl)); } catch (e) { console.warn('AVISO: nao gravei blocos_deck.json: ' + e.message); }
     if (path.dirname(path.resolve(arquivo)) !== process.cwd()) fs.copyFileSync(path.join(process.cwd(),'identidade_visual.json'),path.join(path.dirname(path.resolve(arquivo)),'identidade_visual.json'));
     const tj = arquivo + '.tema.json';   // tema.py (da propria skill) grava as cores do deck e corrige defeitos do pptxgenjs
     fs.writeFileSync(tj, JSON.stringify({ name: 'Tema do deck', colors: { dk1: '000000', lt1: 'FFFFFF', dk2: COR.dom, lt2: COR.fundo, accent1: COR.dom,
