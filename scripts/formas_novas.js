@@ -1,5 +1,5 @@
 // formas_novas.js: formas fieis as referencias do usuario (rodada 3, 16/11/2026). Carregado sozinho pelo moldura.js como deck.N
-module.exports = function (pres, COR, F) {
+module.exports = function (pres, COR, F, DEG = {}) {
   const S = pres.shapes;
   const tom = (hex, f) => { const n = parseInt(hex, 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f))); return c.map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase(); };
   const txt = (s, t, o) => s.addText(t, Object.assign({ fontFace: F, margin: 0, isTextBox: true, valign: 'middle', color: COR.texto }, o));
@@ -9,11 +9,16 @@ module.exports = function (pres, COR, F) {
     s.addShape(S.CUSTOM_GEOMETRY, Object.assign({ x: x0, y: y0, w: Math.max(Math.max(...xs) - x0, 0.01), h: Math.max(Math.max(...ys) - y0, 0.01), points }, opt));
   }
   function seg(s, x1, y1, x2, y2, line) { s.addShape(S.LINE, { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1), flipV: (x2 - x1) * (y2 - y1) < 0, line }); }
-  function piramideFacetada(s, { x, y, w, h, niveis, cores }) {
+  // ativo (opcional, revelacao): indice do nivel aceso; os outros sao REDESENHADOS no azul claro da paleta. Nao use retangulo
+  // branco por cima (reprovado em 22/11/2026: nao cobre todas as faces e deixa faixas cinza). Devolve as faixas de cada nivel
+  // [{ y, h, fim }] para ligar o nivel aceso ao card com sanfonaDegrade({ de: { x: fim, y, h }, para: card }).
+  function piramideFacetada(s, { x, y, w, h, niveis, cores, ativo = null }) {
     const n = niveis.length, H = 125, g = 19, m = 0.63, sh = 10, k = 0.18, wt = [], wb = [];
     for (let i = 0; i < n; i++) { wt[i] = i === 0 ? 0 : wb[i - 1] + sh; wb[i] = wt[i] + m * H; }
     const natW = 2 * wb[n - 1], natH = (n - 1) * (H + g) + H + k * wb[n - 1], f = h / natH, cx = x + natW * f / 2;
     cores = cores || [COR.dom, tom(COR.dom, -0.4), COR.escuro, tom(COR.dom, 0.45)].slice(0, n);
+    const apagado = (i) => ativo != null && i !== ativo;
+    cores = cores.map((c, i) => apagado(i) ? tom(COR.dom, 0.78) : c);
     const X = (u) => cx + u * f, Y = (v) => y + v * f, ytop = (i) => i * (H + g), ybot = (i) => i * (H + g) + H;
     niveis.forEach((nv, i) => {
       const fim = x + w * (n === 1 ? 1 : 0.8 + 0.2 * i / (n - 1)), y0 = Y(ytop(i)), hh = H * f;
@@ -25,11 +30,12 @@ module.exports = function (pres, COR, F) {
     for (let i = n - 1; i >= 0; i--) {
       const c = cores[i], Lt = [X(-wt[i]), Y(ytop(i))], Rt = [X(wt[i]), Y(ytop(i))], Bt = [X(0), Y(ytop(i) + k * wt[i])], Kt = [X(0), Y(ytop(i) - k * wt[i])];
       const Lb = [X(-wb[i]), Y(ybot(i))], Rb = [X(wb[i]), Y(ybot(i))], Fb = [X(0), Y(ybot(i) + k * wb[i])], Kb = [X(0), Y(ybot(i) - k * wb[i])];
-      if (i > 0) poly(s, [Lt, Kt, Rt, Bt], { fill: { color: tom(c, -0.3) }, line: BR });
+      if (i > 0) poly(s, [Lt, Kt, Rt, Bt], { fill: { color: apagado(i) ? tom(COR.dom, 0.62) : tom(c, -0.3) }, line: BR });
       poly(s, i === 0 ? [Bt, Lb, Fb] : [Lt, Bt, Fb, Lb], { fill: { color: c }, line: BR });
       poly(s, i === 0 ? [Bt, Fb, Rb] : [Bt, Rt, Rb, Fb], { fill: { color: c }, line: BR });
       seg(s, Lb[0], Lb[1], Kb[0], Kb[1], BR); seg(s, Kb[0], Kb[1], Rb[0], Rb[1], BR);
     }
+    return niveis.map((_, i) => ({ y: Y(ytop(i)), h: H * f, fim: x + w * (n === 1 ? 1 : 0.8 + 0.2 * i / (n - 1)) }));
   }
   function funilTroncos(s, { x, y, wFunil = 3.4, itens, cores, wLado = 4.2 }) {
     const n = itens.length, esc = [1, 0.812, 0.649, 0.509, 0.40], W0 = wFunil;
@@ -117,5 +123,61 @@ module.exports = function (pres, COR, F) {
       txt(s, it.texto, { x: cxm - pas * 0.5, y: cima ? y - 0.18 - hTexto : y + hFita + 0.2, w: pas, h: hTexto, fontSize: 9, align: 'center', valign: cima ? 'bottom' : 'top' });
     });
   }
-  return { cardGrande, tom, poly, seg, piramideFacetada, funilTroncos, sanfona, mockupNavegador, cardGraficosAlto, linhaTempoFitas };
+
+  // ---------- aprovadas no deck Carrefour (22/11/2026) ----------
+  let nDeg = 0;
+  // sanfonaDegrade: liga o item aceso (lista, faixa da piramide, chip) ao card de detalhe com DUAS dobras em degrade continuo:
+  // sai na cor do item, clareia ate a dobra e chega ao card quase no cinza dele. de = borda direita do item { x, y, h };
+  // para = borda esquerda do card { x, y, h }. Desenhe ANTES do card (o card fica por cima da ponta da sanfona).
+  function sanfonaDegrade(s, { de, para, cor }) {
+    const c = cor || COR.dom, xm = (de.x + para.x) / 2, m0 = (de.y + para.y) / 2, m1 = (de.y + de.h + para.y + para.h) / 2, cm = tom(c, 0.5);
+    const g1 = 'GR_sanfona_' + (++nDeg) + 'a', g2 = 'GR_sanfona_' + nDeg + 'b';
+    DEG[g1] = { ang: 0, stops: [[0, c, 100], [100, cm, 100]] };
+    DEG[g2] = { ang: 0, stops: [[0, tom(c, 0.58), 100], [100, 'E6EBF2', 100]] };
+    poly(s, [[de.x - 0.01, de.y], [xm, m0], [xm, m1], [de.x - 0.01, de.y + de.h]], { fill: { color: cm }, line: { type: 'none' }, objectName: g1 });
+    poly(s, [[xm, m0], [para.x, para.y], [para.x, para.y + para.h], [xm, m1]], { fill: { color: 'E6EBF2' }, line: { type: 'none' }, objectName: g2 });
+  }
+  // pontePainel: trapezio em degrade entre dois paineis cinza empilhados (kepl3_p044), com rotulo no meio ("Os tres gargalos")
+  function pontePainel(s, { xa, xb, y1, x0, x1, y2, rotulo }) {
+    const g = 'GR_ponte_' + (++nDeg);
+    DEG[g] = { ang: 90, stops: [[0, tom(COR.dom, 0.55), 100], [100, 'E6EBF2', 100]] };
+    poly(s, [[xa, y1], [xb, y1], [x1, y2], [x0, y2]], { fill: { color: 'E6EBF2' }, line: { type: 'none' }, objectName: g });
+    if (rotulo) txt(s, rotulo, { x: (x0 + x1) / 2 - 1.75, y: y1 + 0.04, w: 3.5, h: y2 - y1 - 0.08, fontSize: 12, bold: true, color: COR.escuro, align: 'center' });
+  }
+  // linhaProcesso: onda continua que sobe e desce ligando um ponto por etapa, numa FAIXA LIVRE abaixo das fotos, nunca por cima
+  // da imagem (usuario: "vai ter uma imagem ali e talvez nao fique visivel"). yFoto = base das fotos: um traco liga cada foto ao ponto.
+  function linhaProcesso(s, { centros, y, amp = 0.16, yFoto, cor }) {
+    const c = cor || COR.dom, xa = centros[0], xb = centros[centros.length - 1], yTop = y - amp * 1.4;
+    const pts = [{ x: 0, y: y - yTop, moveTo: true }];
+    for (let i = 1; i < centros.length; i++) {
+      const dx = centros[i] - centros[i - 1], sg = i % 2 ? -1 : 1, px = centros[i - 1] - xa;
+      pts.push({ x: centros[i] - xa, y: y - yTop, curve: { type: 'cubic', x1: px + dx * 0.35, y1: y - yTop + sg * amp * 1.3, x2: px + dx * 0.65, y2: y - yTop + sg * amp * 1.3 } });
+    }
+    s.addShape(S.CUSTOM_GEOMETRY, { x: xa, y: yTop, w: xb - xa, h: amp * 2.8, points: pts, fill: { type: 'none' }, line: { color: c, width: 2.25 } });
+    centros.forEach(cx => {
+      if (yFoto != null && y - 0.12 > yFoto) s.addShape(S.LINE, { x: cx, y: yFoto, w: 0, h: y - 0.12 - yFoto, line: { color: c, width: 1 } });
+      s.addShape(S.OVAL, { x: cx - 0.13, y: y - 0.13, w: 0.26, h: 0.26, fill: { color: c }, line: { color: 'FFFFFF', width: 1.5 } });
+    });
+  }
+  // tabelaLimpa: quadro comparativo SEM fios, bordas, faixa de cabecalho ou linha pintada (modelo do usuario, 22/11/2026):
+  // LOGO de cada empresa no topo da coluna (placeholder se nao houver arquivo), rotulo da linha em cinza a esquerda, dado em cinza
+  // e valor qualitativo em negrito escuro, com respiro entre as linhas. linhas: [[rotulo, [valores], qualitativo?]].
+  function tabelaLimpa(s, { x, y, w, colunas, linhas, wRot = 1.55, hLogo = 0.62, dy = 0.66, logos = {} }) {
+    const n = colunas.length, wc = (w - wRot) / n, y0 = y + hLogo + 0.4;
+    colunas.forEach((nome, j) => {
+      const xi = x + wRot + j * wc + 0.18, wl = wc - 0.36;
+      if (logos[nome]) s.addImage({ path: logos[nome], x: xi, y, w: wl, h: hLogo, sizing: { type: 'contain', w: wl, h: hLogo } });
+      else {
+        s.addShape(S.RECTANGLE, { x: xi, y, w: wl, h: hLogo, fill: { color: 'F2F2F2' }, line: { color: 'A6A6A6', width: 1, dashType: 'dash' } });
+        txt(s, '[LOGO: ' + nome + ']', { x: xi, y, w: wl, h: hLogo, fontSize: 9.5, color: '7F7F7F', align: 'center' });
+      }
+    });
+    linhas.forEach(([rot, vals, qual], i) => {
+      const yi = y0 + i * dy;
+      txt(s, rot, { x, y: yi, w: wRot, h: 0.4, fontSize: 12, color: '7F7F7F' });
+      vals.forEach((v, j) => txt(s, v, { x: x + wRot + j * wc, y: yi, w: wc, h: 0.4, fontSize: qual ? 12.5 : 12, bold: !!qual, color: qual ? COR.escuro : '595959', align: 'center' }));
+    });
+    return y0 + linhas.length * dy;
+  }
+  return { sanfonaDegrade, pontePainel, linhaProcesso, tabelaLimpa, cardGrande, tom, poly, seg, piramideFacetada, funilTroncos, sanfona, mockupNavegador, cardGraficosAlto, linhaTempoFitas };
 };

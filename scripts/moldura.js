@@ -895,7 +895,7 @@ module.exports = function (cfg) {
   }
 
   // formas novas (rodada 3): carregadas aqui, sem regravar codigo a cada deck. Uso: deck.N.piramideFacetada(s, {...})
-  const N = require(path.join(AQUI, 'formas_novas.js'))(pres, COR, F);
+  const N = require(path.join(AQUI, 'formas_novas.js'))(pres, COR, F, formas.degrades);   // degrades: sanfona e ponte (aprovadas em 22/11/2026)
   // formas aposentadas (16/11/2026): saiam distorcidas em relacao as referencias
   [['piramide3D', 'deck.N.piramideFacetada'], ['funilPrismas', 'deck.N.funilTroncos']].forEach(([nome, alt]) => { formas[nome] = () => { throw new Error(`"${nome}" foi aposentada (saia distorcida). Use ${alt}.`); }; });
   const api = { N, pres, formas, COR, F, B, tom, X0, X1, LARG: X1 - X0, AREA, txt, novoSlide, titulo, cabecalho, unidade, fontes, notas,

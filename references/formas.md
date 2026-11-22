@@ -46,6 +46,11 @@ Todas as funcoes recebem `(slide, { ... })`; medidas em polegadas; `runs` = stri
 | `colunasEquacao` | Proposta de valor A + B + C = resultado | `x, y, w, h, pilares: [[titulo, rotulo]], resultado, imagens?: [descricao]` (topo de cada coluna e placeholder de imagem) | h ~2,3 |
 | `cartaoCitacao` | Fala de executivo/entrevistado | `x, y, w, h, citacao: [string \| { text, options }], nome, cargo` | h ~1,5 |
 | `cardsLigados` | 2 a 4 cards em sequencia, costurados por circulos | `x, y, w, h, cards: [[titulo, runs]]` | livre |
+| `N.sanfonaDegrade` | Liga o item aceso ao card de detalhe na revelacao (aprovada 22/11/2026) | `de: { x, y, h }, para: { x, y, h }, cor?` | entre item e card |
+| `N.pontePainel` | Trapezio em degrade entre dois paineis empilhados, com rotulo | `xa, xb, y1, x0, x1, y2, rotulo?` | ~0,45 pol |
+| `N.linhaProcesso` | Onda continua ligando etapas, abaixo das fotos | `centros: [x], y, amp?=0.16, yFoto?, cor?` | ~0,45 pol |
+| `N.tabelaLimpa` | Quadro comparativo limpo com logos no topo (unica tabela fora de demonstracao financeira) | `x, y, w, colunas, linhas: [[rotulo, [valores], qualitativo?]], wRot?, hLogo?, dy?, logos?` | logos + 0,66 pol por linha |
+| `N.piramideFacetada` com `ativo` | Revelacao por nivel: inativos redesenhados em azul claro; devolve `[{ y, h, fim }]` | `..., ativo: indice` | igual a piramide |
 
 Utilitarios: `formas.tom(hex, f)` (f > 0 clareia, f < 0 escurece), `formas.placeholder({ x, y, w, h, texto, nome })`, `formas.linhaGuia(slide, x1, y, x2)`, `formas.larguraTexto(txt, pt, negrito)`, `formas.sombra()`.
 

@@ -6,7 +6,7 @@ Lido quando o deck tiver tabela, conector, icone, sumario ou slide final de reco
 
 **LIBERADO em 2026-11-11, so no formato das referencias** (palavras do usuario: "tem que ser usado igual eles usam na apresentacao, na mesma formatacao, diagramacao etc., porque senao fica com cara de Claude"):
 
-1. **Tabelas** nativas (excecao, nao regra: ver Protocolo, item 4): `tabela` (estilos `financeira`, `limpa`, `faixa`, `rotuloValor`), `sensibilidade`, `premissas`. Fonte 8pt, fios finos, sem grade cheia, linha ou coluna de resultado destacada
+1. **Tabelas** (atualizado em 22/11/2026: fora de demonstracao financeira, so `deck.N.tabelaLimpa`, sem fios, bordas, faixa ou fundo e com LOGOS no topo das colunas; o quadro com fios e linha pintada foi reprovado como "generico") nativas (excecao, nao regra: ver Protocolo, item 4): `tabela` (estilos `financeira`, `limpa`, `faixa`, `rotuloValor`), `sensibilidade`, `premissas`. Fonte 8pt, fios finos, sem grade cheia, linha ou coluna de resultado destacada
 2. **Setas e conectores**: colchete de CAGR, nota com conector tracejado e ponta pequena, conector de zoom, eixo com seta fina, chevron so em linha do tempo ou metodologia. **Nunca** seta gorda (forma "Arrow") entre caixas
 3. **Diagramas de analise com formas**: football field, matriz de risco, equacao em blocos, cadeia de valor, linha do tempo, cenarios, treemap, estrutura acionaria
 4. **Icones de linha**, pequenos e de uma cor, onde identificam algo fisico (secao 2)

@@ -45,16 +45,20 @@ try { $node = (& node --version) } catch { }
 $pptxgen = $false
 if ($node) {
   Push-Location $Destino
+  # No PowerShell 5.1, stderr de executavel nativo vira excecao com ErrorActionPreference = 'Stop' (numa pasta nova, sem
+  # pptxgenjs, o script abortava aqui antes de instalar). Por isso a checagem roda com 'Continue'.
+  $eaAnterior = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
   try {
     & node -e "require.resolve('pptxgenjs')" 2>$null | Out-Null
     $pptxgen = ($LASTEXITCODE -eq 0)
     if (-not $pptxgen -and -not $SemInstalar) {
       Write-Host 'pptxgenjs ausente: instalando na pasta do deck (npm install pptxgenjs)...'
-      & npm install pptxgenjs --no-audit --no-fund --silent | Out-Null
+      & npm install pptxgenjs --no-audit --no-fund --silent 2>$null | Out-Null
       & node -e "require.resolve('pptxgenjs')" 2>$null | Out-Null
       $pptxgen = ($LASTEXITCODE -eq 0)
     }
-  } finally { Pop-Location }
+  } finally { $ErrorActionPreference = $eaAnterior; Pop-Location }
 }
 
 # 4. fontes aprovadas

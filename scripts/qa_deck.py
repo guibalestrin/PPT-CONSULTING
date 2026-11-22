@@ -350,6 +350,13 @@ for n in slides:
         if bx and bx[2] * bx[3] >= 3.0 and re.match(r'^\[\s*AN[AÁ]LISE', tx, re.I) and len(tx) < 160:
             avisos.append(f'slide {idx}: caixa de {bx[2]:.1f} x {bx[3]:.1f} pol so com "{tx[:50]}": no sketch, desenhe o exhibit esqueleto (grafico com [DADO], quadro com as linhas certas) em vez de caixa vazia'); break
 
+# Geometria negativa (ex.: LINE com h < 0): o PowerPoint recusa abrir o arquivo inteiro ("could not open the file"), mesmo com
+# zip e QA ok. Aconteceu no deck Carrefour (22/11/2026). Para linha em qualquer direcao use deck.N.seg(s, x1, y1, x2, y2, line).
+for sn in slides:
+    for cx_, cy_ in re.findall(rb'<a:ext cx="(-?\d+)" cy="(-?\d+)"', z.read(sn)):
+        if int(cx_) < 0 or int(cy_) < 0:
+            erros.append(f'slide {numero(sn)}: forma com largura ou altura negativa (cx={int(cx_)}, cy={int(cy_)}): o PowerPoint nao abre o arquivo. Use N.seg ou confira y2 > y1'); break
+
 # Cores de fotos e logos não entram na checagem; somente preenchimentos nativos grandes.
 ident_arq=os.path.join(os.path.dirname(os.path.abspath(args.deck)),'identidade_visual.json')
 if os.path.exists(ident_arq):

@@ -9,10 +9,11 @@ Saida: <Saida>\Slide<N>.png e <Saida>\folha.png (ou folha_01.png, folha_02.png..
 param(
   [Parameter(Mandatory = $true)][string]$Deck,
   [string]$Saida,
-  [int[]]$Slides,
+  [string[]]$Slides,   # aceita -Slides 3,4,5 com -Command e com -File (com -File chega como texto "3,4,5")
   [int]$Largura = 1600
 )
 $ErrorActionPreference = 'Stop'
+$Nums = @(); if ($Slides) { $Nums = @(($Slides -join ',') -split '[,; ]+' | Where-Object { $_ } | ForEach-Object { [int]$_ }) }
 $Deck = (Resolve-Path $Deck).Path
 if (-not $Saida) { $Saida = Join-Path (Split-Path -Parent $Deck) 'render' }
 New-Item -ItemType Directory -Force -Path $Saida | Out-Null
@@ -29,7 +30,7 @@ if (Test-Path 'Registry::HKEY_CLASSES_ROOT\PowerPoint.Application') {
   $p = $app.Presentations.Open($Deck, -1, 0, 0)
   try {
     $total = $p.Slides.Count
-    $lista = if ($Slides) { $Slides } else { 1..$total }
+    $lista = if ($Nums.Count) { $Nums } else { 1..$total }
     foreach ($i in $lista) {
       if ($i -lt 1 -or $i -gt $total) { continue }
       $arq = Join-Path $Saida ("Slide{0}.png" -f $i)
@@ -51,7 +52,7 @@ if (Test-Path 'Registry::HKEY_CLASSES_ROOT\PowerPoint.Application') {
   & pdftoppm -png -scale-to-x $Largura -scale-to-y $Altura $pdf (Join-Path $Saida 'Slide') | Out-Null
   Get-ChildItem $Saida -Filter 'Slide-*.png' | ForEach-Object {
     $n = [int]($_.BaseName -replace '^Slide-0*', '')
-    if ($Slides -and ($Slides -notcontains $n)) { Remove-Item $_.FullName; return }
+    if ($Nums.Count -and ($Nums -notcontains $n)) { Remove-Item $_.FullName; return }
     $novo = Join-Path $Saida ("Slide{0}.png" -f $n); Move-Item $_.FullName $novo -Force; $gerados += $novo
   }
 }
