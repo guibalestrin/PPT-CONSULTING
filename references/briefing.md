@@ -7,7 +7,7 @@ Este arquivo e apoio. Em caso de conflito, vale o `SKILL.md` (secoes "Contrato d
 ## NAO perguntar (ja decidido pelo usuario)
 
 - **Publico:** sempre o cliente que contratou a consultoria.
-- **Objetivo:** responder a pergunta do cliente do escopo.
+- **Objetivo e pergunta do cliente:** o cliente sempre contrata para encontrar melhorias ou resolver problemas; a skill deduz a pergunta pelo escopo e a mostra no resumo.
 - **Secoes do deck:** ordem padrao de cada escopo (`SKILL.md`, "Padroes que dispensam pergunta"); o usuario ajusta depois no PowerPoint.
 - **Modelo de capa:** escolhido pelo contexto (`references/capas.md`), informado no resumo.
 - **Formato:** sempre `.pptx` editavel.
@@ -20,13 +20,12 @@ Este arquivo e apoio. Em caso de conflito, vale o `SKILL.md` (secoes "Contrato d
 ## Perguntar (so o que faltar)
 
 1. **Escopo(s) e fase:** mercadologico, operacional, marketing/7Ps, financeiro (viabilidade); diagnostico, parcial, final ou pitch.
-2. **Pergunta do cliente** ("Fomos contratados para responder..."): so se nao estiver no pedido; aceite "deduza pelo escopo".
-3. **Empresa analisada e nome do trabalho.**
-4. **Integrantes** (sempre perguntar), mentor/coordenador.
-5. **Logos e fotos:** Insper Jr, consultoria parceira, empresa; anexar ou placeholder.
-6. **Paleta:** tres cores nos papeis 60/30/10; sem paleta, ofereca 2 ou 3 opcoes derivadas das logos ou da identidade da empresa.
-7. **Tipografia:** Montserrat, Gill Sans MT ou Dubai.
-8. **Material:** o usuario anexa dados/relatorios, a skill pesquisa, ou misto.
+2. **Empresa analisada e nome do trabalho.**
+3. **Integrantes** (sempre perguntar), mentor/coordenador.
+4. **Logos e fotos:** Insper Jr, consultoria parceira, empresa; anexar ou placeholder.
+5. **Paleta:** tres cores nos papeis 60/30/10; sem paleta, ofereca 2 ou 3 opcoes derivadas das logos ou da identidade da empresa.
+6. **Tipografia:** Montserrat, Gill Sans MT ou Dubai.
+7. **Material:** o usuario anexa dados/relatorios, a skill pesquisa, ou misto.
 
 Opcionais (aceite "tanto faz"): rodape da capa (curso, data), prazo ou duracao, `registro_decisoes.json` de um deck anterior.
 
