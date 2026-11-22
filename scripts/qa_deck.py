@@ -3,12 +3,14 @@
 
 Uso: python3 qa_deck.py deck.pptx [--fonte "Gill Sans MT"] [--ttf regular.ttf] [--ttf-bold bold.ttf]
 
-Confere: fonte unica; texto abaixo de 7pt; densidade (palavras por slide); habitos de IA (setas gordas, cards identicos); hierarquia (titulo maior que todo outro texto do slide); formas fora da area
+Confere: ocupacao da area util (>= 80%, ERRO abaixo), maior area vazia, grade de 4+ cards identicos (ERRO), divisao 'livre' em mais de 2 slides (ERRO); fonte unica; texto abaixo de 7pt; densidade (palavras por slide); habitos de IA (setas gordas, cards identicos); hierarquia (titulo maior que todo outro texto do slide); formas fora da area
 util; possivel estouro de texto (estimativa, exata com --ttf); e lista as pendencias por slide (placeholders e [DADO: ...]).
 Sai com codigo 1 se houver ERRO.
 """
 import argparse, json, os, re, sys, zipfile, colorsys
 from lxml import etree
+try: sys.stdout.reconfigure(encoding='utf-8')   # Windows: acentos legiveis no console
+except Exception: pass
 
 A = 'http://schemas.openxmlformats.org/drawingml/2006/main'
 P = 'http://schemas.openxmlformats.org/presentationml/2006/main'
@@ -21,9 +23,9 @@ args = ap.parse_args()
 
 # modo do deck (moldura.js grava modo_deck.txt ao lado do .pptx): 'insperjr' (padrao) tem texto maior, slides mais leves e
 # revelacao progressiva (paginas com VEU sao copias com estado); 'financeiro' mantem os limites antigos (9pt, 100-300 palavras).
-_md = os.path.join(os.path.dirname(os.path.abspath(args.deck)), 'modo_deck.txt')
-MODO = getattr(args, 'modo', None) or (open(_md).read().strip() if os.path.exists(_md) else 'insperjr')
-IJ = MODO == 'insperjr'
+# 22/11/2026: o modo 'financeiro' foi removido; --modo e modo_deck.txt sao ignorados.
+MODO = 'insperjr'
+IJ = True
 
 _fontes = {}
 def medir(t, sz, bold):
@@ -97,7 +99,7 @@ for n in nomes:
     if re.match(r'ppt/(slides|slideLayouts|charts)/[^/]+\.xml$', n):
         usadas |= {f for f in re.findall(r'typeface="([^"]*)"', z.read(n).decode('utf8', 'ignore')) if f and not f.startswith('+')}
 import subprocess
-_v = subprocess.run([sys.executable, '-I', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vetos_texto.py'), args.deck], capture_output=True, text=True).stdout.strip()
+_v = subprocess.run([sys.executable, '-I', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vetos_texto.py'), args.deck], capture_output=True, text=True, encoding='utf-8', env=dict(os.environ, PYTHONIOENCODING='utf-8')).stdout.strip()
 for _l in _v.splitlines(): erros.append('texto vetado (travessao, meia-risca, menos ou ponto medio): ' + _l.strip())
 if len(usadas) > 1: erros.append(f'mais de uma fonte no deck: {sorted(usadas)}')
 if args.fonte and usadas and usadas != {args.fonte}: erros.append(f'fonte esperada "{args.fonte}", encontrada {sorted(usadas)}')
@@ -139,9 +141,9 @@ for n in slides:
                 elif len(t.strip()) > 2: outros.append(sz); palavras += len(t.split())
                 if len(t.strip()) > 2 and sz < 7: erros.append(f'slide {idx}: texto com {sz:g}pt (minimo 7pt, so para micro-rotulos) em "{nome}": "{t.strip()[:40]}"')
         # limites da area util (pula titulo, apoio, fontes e a capa)
-        if cx and not eh_capa and idx not in sumarios and nome not in ('TITULO', 'APOIO', 'FONTES', 'NOTAS', 'FLUXO') and not nome.startswith(('BL_', 'MARC_', 'GR_marcador', 'Slide Number', 'VEU', 'FAIXA_pergunta')):
+        if cx and not eh_capa and idx not in sumarios and nome not in ('TITULO', 'APOIO', 'FONTES', 'NOTAS', 'FLUXO') and not nome.startswith(('BL_', 'MARC_', 'GR_marcador', 'Slide Number', 'VEU', 'FAIXA_pergunta')) and not nome.endswith('_sombra'):
             x, y, w, h = cx
-            if x < 0.64 - 0.001 or x + w > 12.78 or y + h > 6.75: avisos.append(f'slide {idx}: "{nome or e.tag.split("}")[1]}" fora da area util (x {x:.2f}-{x + w:.2f}, y {y:.2f}-{y + h:.2f})')
+            if x < 0.64 - 0.05 or x + w > 12.78 + 0.05 or y + h > 6.75 + 0.05: avisos.append(f'slide {idx}: "{nome or e.tag.split("}")[1]}" fora da area util (x {x:.2f}-{x + w:.2f}, y {y:.2f}-{y + h:.2f})')
         if cx and (cx[0] + cx[2] > 13.34 or cx[1] + cx[3] > 7.51): erros.append(f'slide {idx}: "{nome}" ultrapassa a borda do slide')
         # possivel estouro de texto
         bp = e.find('p:txBody/a:bodyPr', NS)
@@ -207,6 +209,101 @@ for n in slides:
         grandes = [z_ for z_ in outros if z_ > (16.5 if IJ else 12.5)]
         if len(grandes) > 6: avisos.append(f'slide {idx}: {len(grandes)} textos grandes no miolo: o corpo das referencias e ' + ('11-12pt (Insper Jr)' if IJ else '9pt (legenda 8pt)') + '; numero grande so 1 ou 2 por bloco')
 
+# ---- geometria (22/11/2026): ocupacao >= 80% da area util, maior vazio, grade de cards identicos ----
+MX0, MX1, MY1, PASSO, FOLGA = 0.64, 12.78, 6.75, 0.05, 0.12
+IGNORAR = ('TITULO', 'APOIO', 'FONTES', 'NOTAS', 'FLUXO')
+RET = ('rect', 'roundRect', 'snip1Rect', 'snip2SameRect', 'round1Rect', 'round2SameRect')
+
+def caixa_g(e):
+    x = e.find('p:grpSpPr/a:xfrm', NS) if e.tag == '{%s}grpSp' % P else None
+    if x is None: return caixa(e)
+    off, ext = x.find('a:off', NS), x.find('a:ext', NS)
+    return int(off.get('x')) / EMU, int(off.get('y')) / EMU, int(ext.get('cx')) / EMU, int(ext.get('cy')) / EMU
+
+def preenchido(e):
+    sp = e.find('p:spPr', NS)
+    if sp is None: return False
+    if any(sp.find(t, NS) is not None for t in ('a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill')): return True
+    ln = sp.find('a:ln', NS)
+    return ln is not None and ln.find('a:noFill', NS) is None and ln.find('a:solidFill', NS) is not None
+
+def maior_vazio(occ):
+    """maior retangulo de celulas vazias (algoritmo do histograma): (area_celulas, x, y, w, h) em celulas"""
+    ny, nx = len(occ), len(occ[0]); alt = [0] * nx; melhor = (0, 0, 0, 0, 0)
+    for j in range(ny):
+        for i in range(nx): alt[i] = 0 if occ[j][i] else alt[i] + 1
+        pilha = []
+        for i in range(nx + 1):
+            hh = alt[i] if i < nx else 0
+            ini = i
+            while pilha and pilha[-1][1] >= hh:
+                ini, hp = pilha.pop()
+                if hp * (i - ini) > melhor[0]: melhor = (hp * (i - ini), ini, j - hp + 1, i - ini, hp)
+            pilha.append((ini, hh))
+    return melhor
+
+def geometria(idx, root):
+    arvore = root.find('p:cSld/p:spTree', NS)
+    y0 = 1.25
+    for e in arvore:
+        c = e.find('.//p:cNvPr', NS)
+        if c is not None and c.get('name') == 'APOIO' and caixa(e): bx = caixa(e); y0 = max(y0, min(bx[1] + bx[3] + 0.05, 1.6))
+    nx, ny = int((MX1 - MX0) / PASSO), int((MY1 - y0) / PASSO)
+    if nx < 1 or ny < 1: return None
+    occ = [[False] * nx for _ in range(ny)]
+    cards = {}
+    for e in arvore:
+        if e.tag not in ('{%s}sp' % P, '{%s}pic' % P, '{%s}graphicFrame' % P, '{%s}grpSp' % P): continue
+        c = e.find('.//p:cNvPr', NS); nome = c.get('name', '') if c is not None else ''
+        if nome in IGNORAR or nome.startswith(('BL_', 'BARRA', 'MARC_', 'GR_marcador', 'Slide Number', 'VEU')): continue
+        bx = caixa_g(e)
+        if not bx: continue
+        x, y, w, h = bx
+        if w * h > 0.9 * 13.333 * 7.5: continue   # fundo de slide inteiro
+        if e.tag == '{%s}sp' % P:
+            paras = paragrafos(e)
+            tem_txt = any(t.strip() for r in paras for t, _, _ in r)
+            if not preenchido(e):
+                if not tem_txt: continue
+                bp = e.find('p:txBody/a:bodyPr', NS)
+                nec = altura_necessaria(paras, max(w - 0.2, 0.2)) + 0.1
+                hh = min(h, nec); anc = bp.get('anchor', 't') if bp is not None else 't'
+                y = y + (h - hh) / 2 if anc == 'ctr' else (y + h - hh if anc == 'b' else y); h = hh
+            g = e.find('p:spPr/a:prstGeom', NS)
+            if g is not None and g.get('prst') in RET and preenchido(e) and w >= 1.2 and h >= 1.2 and not nome.endswith('_sombra') and not nome.startswith(('PH_', 'MIDIA_')):
+                cards.setdefault((round(w / 0.05), round(h / 0.05), round(y / 0.05)), set()).add(round(x / 0.05))
+        i0 = max(0, int((x - FOLGA - MX0) / PASSO)); i1 = min(nx, int((x + w + FOLGA - MX0) / PASSO) + 1)
+        j0 = max(0, int((y - FOLGA - y0) / PASSO)); j1 = min(ny, int((y + h + FOLGA - y0) / PASSO) + 1)
+        for j in range(j0, j1):
+            linha = occ[j]
+            for i in range(i0, i1): linha[i] = True
+    total = nx * ny
+    ocup = sum(map(sum, occ)) / total
+    a, vi, vj, vw, vh = maior_vazio(occ)
+    grade = max((len(v) for v in cards.values()), default=0)
+    return ocup, a / total, (MX0 + vi * PASSO, y0 + vj * PASSO, vw * PASSO, vh * PASSO), grade
+
+for n in slides:
+    idx = numero(n)
+    root = etree.fromstring(z.read(n))
+    nomes_s = {c.get('name') for c in root.iter('{%s}cNvPr' % P)}
+    if idx in sumarios or 'CAPA_TITULO' in nomes_s or 'TITULO' not in nomes_s: continue
+    r = geometria(idx, root)
+    if not r: continue
+    ocup, vazio, (vx, vy, vw, vh), grade = r
+    pct = int(ocup * 100)   # arredonda para baixo: 79,6% aparece como 79%
+    infos.append(f'slide {idx}: ocupacao {pct}% da area util; maior vazio {vazio:.0%}')
+    if ocup < 0.80: erros.append(f'slide {idx}: ocupa so {pct}% da area util (minimo 80%, pedido do usuario): aumente o exhibit principal ou a imagem, junte outro exhibit ou mude a divisao; se faltar conteudo, junte com o slide vizinho')
+    elif vazio > 0.12: avisos.append(f'slide {idx}: area vazia de {vw:.1f} x {vh:.1f} pol em x {vx:.1f}, y {vy:.1f} ({vazio:.0%} da area util): ocupe ou redistribua')
+    # modo sketch (16/11/2026): titulo e hipotese com a lacuna dentro; exhibit desenhado, nao caixa vazia de analise
+    tit = ''.join(t.text or '' for e in root.iter('{%s}sp' % P) if (e.find('.//p:cNvPr', NS) is not None and e.find('.//p:cNvPr', NS).get('name') == 'TITULO') for t in e.iter('{%s}t' % A)).strip()
+    if re.match(r'^\[\s*T[IÍ]TULO', tit, re.I): erros.append(f'slide {idx}: titulo e so o placeholder "{tit[:40]}": escreva a hipotese de conclusao com a lacuna dentro (ex.: "A demanda cresce [DADO: % a.a.] e abre espaco para ...")')
+    for e in root.iter('{%s}sp' % P):
+        bx = caixa(e); tx = ''.join(t.text or '' for t in e.iter('{%s}t' % A)).strip()
+        if bx and bx[2] * bx[3] >= 3.0 and re.match(r'^\[\s*AN[AÁ]LISE', tx, re.I) and len(tx) < 160:
+            avisos.append(f'slide {idx}: caixa de {bx[2]:.1f} x {bx[3]:.1f} pol so com "{tx[:50]}": no sketch, desenhe o exhibit esqueleto (grafico com [DADO], quadro com as linhas certas) em vez de caixa vazia'); break
+    if grade >= 4: erros.append(f'slide {idx}: grade de {grade} cards identicos lado a lado (proibido: cara de IA). Varie o peso dos cards (um principal maior), use cards de tipos diferentes ou outra organizacao (references/arranjos.md)')
+
 # Cores de fotos e logos não entram na checagem; somente preenchimentos nativos grandes.
 ident_arq=os.path.join(os.path.dirname(os.path.abspath(args.deck)),'identidade_visual.json')
 if os.path.exists(ident_arq):
@@ -240,6 +337,8 @@ if os.path.exists(reg):
             if divs[i] and divs[i] == divs[i - 1]: avisos.append(f'slides "{a_.get("slide")}" e "{b_.get("slide")}" (vizinhos) repetem a divisao "{divs[i]}": slides vizinhos nao repetem a divisao')
             ea, eb = {str(x).lower() for x in a_.get('exhibits', [])}, {str(x).lower() for x in b_.get('exhibits', [])}
             if ea and ea == eb: avisos.append(f'slides "{a_.get("slide")}" e "{b_.get("slide")}" usam exatamente os mesmos exhibits: varie a forma principal')
+        n_livre = sum(1 for d in divs if d.lower() == 'livre')
+        if n_livre > 2: erros.append(f'divisao "livre" em {n_livre} slides (maximo 2 por deck): informe em deck.decidir a divisao real (2c, 3c, 2x2, L, 1+2...) para o QA checar a variedade')
         usadas = [d for d in divs if d]
         if len(usadas) >= 4 and len(set(usadas)) < max(2, len(usadas) // 2): avisos.append(f'pouca variedade de divisoes: {len(set(usadas))} tipos em {len(usadas)} slides ({", ".join(sorted(set(usadas)))})')
         infos.append(f'variedade: {len(set(usadas))} divisoes distintas em {len(usadas)} slides de conteudo registrados')

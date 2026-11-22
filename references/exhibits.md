@@ -1,6 +1,6 @@
 # Exhibits de referência (`scripts/exhibits.js`)
 
-Leia **sempre que for montar o miolo**, depois de `gramatica.md`. São as peças no formato exato dos decks de referência, já na densidade certa (corpo 9pt, legenda 8pt, micro 7pt). Ficam em `deck.formas` junto com `formas.js` e `elementos.js`. Todas recebem `(slide, { ... })`, medidas em polegadas; `runs` = string ou runs do pptxgenjs (`{ text, options: { bold: true } }`).
+Leia **sempre que for montar o miolo**, depois de `gramatica.md`. São as peças no formato exato dos decks de referência, (no modo Insper Jr o `moldura.js` aumenta o texto delas ~25%: corpo 11 a 12pt; os números 9/8/7pt abaixo são legado). Ficam em `deck.formas` junto com `formas.js` e `elementos.js`. Todas recebem `(slide, { ... })`, medidas em polegadas; `runs` = string ou runs do pptxgenjs (`{ text, options: { bold: true } }`).
 
 Não são moldes de slide: cada uma resolve **uma função** da informação (`gramatica.md`, seção 4). O slide é a combinação que o conteúdo pedir.
 

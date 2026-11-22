@@ -44,15 +44,17 @@ const pptxgen = require('pptxgenjs');
 
 module.exports = function (cfg) {
   const AQUI = __dirname;
-  const PYTHON = cfg.python || process.env.PYTHON || 'python3';
+  // Python: config > variavel PYTHON > primeiro que tiver lxml entre python3, py e python (no Windows costuma ser "py").
+  const PYTHON = cfg.python || process.env.PYTHON || (['python3', 'py', 'python'].find(c => { try { execFileSync(c, ['-I', '-c', 'import lxml.etree'], { stdio: 'ignore' }); return true; } catch (e) { return false; } }) || 'python3');
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_WIDE';
   const F = cfg.fonte;
   // MODO (2026-11-15): 'insperjr' (padrao) segue os decks Insper Jr do usuario (titulo ~26pt, corpo 11-12pt, imagem grande,
   // revelacao progressiva); 'financeiro' mantem a densidade dos decks de mercado financeiro (titulo 20pt, corpo 9pt).
-  const MODO = cfg.modo || 'insperjr';
-  if (!['insperjr', 'financeiro'].includes(MODO)) throw new Error(`modo desconhecido: "${MODO}". Use 'insperjr' (padrao) ou 'financeiro'.`);
-  // FLUXO DO ESCOPO (obrigatorio, fluxos.js): `escopos` define as etapas do rodape de todo slide e o arquivo fluxo_<escopo>.md
+  // 22/11/2026: o modo 'financeiro' (legado de mercado financeiro, corpo 9pt) foi removido. A skill so faz Insper Jr.
+  if (cfg.modo && cfg.modo !== 'insperjr') throw new Error(`modo "${cfg.modo}" removido: a skill so gera decks Insper Jr. Tire "modo" do config.`);
+  const MODO = 'insperjr';
+  // FLUXO DO ESCOPO (obrigatorio, fluxos.js): `escopos` define as etapas do rodape de todo slide (fluxo_<escopo>.md so com cfg.fluxoMd: true)
   const FLUXO = require(path.join(AQUI, 'fluxos.js')).resolver(cfg);
   cfg.secoes = FLUXO.todas;   // todas as etapas (novoSlide valida contra elas)
   const slidesFluxo = [];
@@ -63,7 +65,7 @@ module.exports = function (cfg) {
   // ---------- ambiente: falha logo no inicio, nao depois de montar o deck ----------
   // Requisitos: node + pptxgenjs; python3 + lxml (barra, degrades e graficos); Pillow so para recortar imagens e medir com .ttf.
   try { execFileSync(PYTHON, ['-I', '-c', 'import lxml.etree']); }
-  catch (e) { throw new Error('Esta skill precisa de python3 com a biblioteca lxml (pip install lxml): ela aplica barra lateral, degrades e acabamento dos graficos depois do pptxgenjs.'); }
+  catch (e) { throw new Error(`Esta skill precisa de Python com a biblioteca lxml (tentei "${PYTHON}"; instale com: ${PYTHON} -m pip install lxml). Ela aplica barra lateral, degrades e acabamento dos graficos depois do pptxgenjs.`); }
   let temPillow = true;
   try { execFileSync(PYTHON, ['-I', '-c', 'import PIL.Image']); }
   catch (e) { temPillow = false; console.warn('AVISO: Pillow ausente (pip install pillow). Logos PNG/JPG continuam sem distorcer; imagens nao serao recortadas e a medida de texto usa estimativa.'); }
@@ -584,8 +586,9 @@ module.exports = function (cfg) {
       d.alternativas.forEach(a => md.push(`  - ${a.arranjo}: ${a.motivo}`));
       md.push('');
     });
-    fs.writeFileSync(base + '.md', md.join('\n'));
-    console.log('registro de decisoes: ' + base + '.json e .md');
+    // 16/11/2026: nenhum .md ao lado do deck (pedido do usuario). O .json fica para o QA e para o historico; nao e entregue.
+    if (cfg.registroMd) fs.writeFileSync(base + '.md', md.join('\n'));
+    console.log('registro de decisoes (interno, nao entregar): ' + base + '.json');
   }
   // Tamanho fixo: reescrever o titulo longo, nunca encolher a fonte.
   const TITULO_PT = 26;
@@ -851,7 +854,7 @@ module.exports = function (cfg) {
   // ---------- finalizacao ----------
   async function finalizar(arquivo, estilosGraficos) {
     const usadas = Object.keys(USO_FRAMEWORK);
-    if (nConteudo >= 5 && usadas.length === 0) console.warn(`AVISO: ${nConteudo} slides de conteudo e nenhuma das 19 formas do framework (piramide3D, funilPrismas, lajesEmpilhadas, colunasEquacao, cardsLigados...). Releia a tabela "Formas do framework" do SKILL.md e veja se algum slide e hierarquia, funil, camadas, pilares ou etapas; se nenhum for, siga (nao force).`);
+    if (nConteudo >= 5 && usadas.length === 0) console.warn(`AVISO: ${nConteudo} slides de conteudo e nenhuma forma do framework (lajesEmpilhadas, colunasEquacao, cardsLigados, chipsHexagonais...) nem das formas novas (deck.N.piramideFacetada, funilTroncos, sanfona...). Releia a tabela "Formas do framework" do SKILL.md e veja se algum slide e hierarquia, funil, camadas, pilares ou etapas; se nenhum for, siga (nao force).`);
     else console.log(`formas do framework usadas: ${usadas.length} de ${FORMAS_FRAMEWORK.length}${usadas.length ? ' (' + usadas.join(', ') + ')' : ''}`);
     await pres.writeFile({ fileName: arquivo });
     if (path.dirname(path.resolve(arquivo)) !== process.cwd()) fs.copyFileSync(path.join(process.cwd(),'identidade_visual.json'),path.join(path.dirname(path.resolve(arquivo)),'identidade_visual.json'));
@@ -879,11 +882,15 @@ module.exports = function (cfg) {
     if (achados) { gravarRegistro(arquivo); throw new Error('TEXTO VETADO no deck (o arquivo foi gerado, mas corrija e rode de novo):\n' + achados + '\nSubstitua: faixa "25-40" vira "25 a 40"; "D-60" usa hifen; negativo usa hifen; separador usa virgula, ponto e virgula ou "|"; frase com travessao vira duas frases ou usa dois pontos.'); }
     gravarRegistro(arquivo);
     const ordemSlides = pres.slides.map(x => x);
-    require(path.join(AQUI, 'fluxos.js')).gerar(path.dirname(path.resolve(arquivo)), FLUXO, slidesFluxo.map(x => ({ secao: x.secao, n: ordemSlides.indexOf(x.slide) + 1 })), arquivo);
+    require(path.join(AQUI, 'fluxos.js')).gerar(path.dirname(path.resolve(arquivo)), FLUXO, slidesFluxo.map(x => ({ secao: x.secao, n: ordemSlides.indexOf(x.slide) + 1 })), arquivo, { gravarMd: !!cfg.fluxoMd });
     console.log('deck gerado: ' + arquivo);
   }
 
-  const api = { pres, formas, COR, F, B, tom, X0, X1, LARG: X1 - X0, AREA, txt, novoSlide, titulo, cabecalho, unidade, fontes, notas,
+  // formas novas (rodada 3): carregadas aqui, sem regravar codigo a cada deck. Uso: deck.N.piramideFacetada(s, {...})
+  const N = require(path.join(AQUI, 'formas_novas.js'))(pres, COR, F);
+  // formas aposentadas (16/11/2026): saiam distorcidas em relacao as referencias
+  [['piramide3D', 'deck.N.piramideFacetada'], ['funilPrismas', 'deck.N.funilTroncos']].forEach(([nome, alt]) => { formas[nome] = () => { throw new Error(`"${nome}" foi aposentada (saia distorcida). Use ${alt}.`); }; });
+  const api = { N, pres, formas, COR, F, B, tom, X0, X1, LARG: X1 - X0, AREA, txt, novoSlide, titulo, cabecalho, unidade, fontes, notas,
     grade, divisao, bloco, blocos, livre, QUAD, capa, sumario, indice, resumoExecutivo, sorteio: SORT,
     popup: SUM.popup, esmaecer: SUM.esmaecer, destacar: SUM.destacar, faixaPergunta: SUM.faixaPergunta, imagem, painel, caber, decidir, finalizar, revelar, MODO };
   const compPath = path.join(AQUI, 'composicoes.js');

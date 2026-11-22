@@ -82,7 +82,7 @@ function resolver(cfg) {
 
 // gerar(dir, fluxo, slides): grava fluxo_<escopo>.md e valida (>= 1 slide por escopo; aviso por etapa sem slide).
 // slides: [{ secao, n }] com n = numero do slide no arquivo final
-function gerar(dir, fluxo, slides, arquivoPptx) {
+function gerar(dir, fluxo, slides, arquivoPptx, op = {}) {   // op.gravarMd: grava fluxo_<escopo>.md (16/11/2026: desligado por padrao, nao entregar .md)
   const saidas = [];
   fluxo.escopos.forEach(e => {
     const meus = slides.filter(s => e.secoes.includes(s.secao));
@@ -96,11 +96,9 @@ function gerar(dir, fluxo, slides, arquivoPptx) {
       L.push(`| ${i + 1} | ${sec} | ${(e.conteudo[sec] || ['etapa extra pedida pelo usuário']).join('; ')} | ${ns.length ? [...new Set(ns)].join(', ') : '(sem slide)'} |`);
     });
     if (vazias.length) { L.push('', `Atenção: etapas sem slide: ${vazias.join(', ')}. Se foram dispensadas pelo usuário, avise na entrega; senão, acrescente.`); console.warn(`AVISO fluxo ${e.nome}: etapas sem slide: ${vazias.join(', ')}`); }
-    const arq = path.join(dir, `fluxo_${e.id}.md`);
-    fs.writeFileSync(arq, L.join('\n') + '\n');
-    saidas.push(arq);
+    if (op.gravarMd) { const arq = path.join(dir, `fluxo_${e.id}.md`); fs.writeFileSync(arq, L.join('\n') + '\n'); saidas.push(arq); }
   });
-  console.log('fluxo(s) do escopo gravado(s): ' + saidas.map(a => path.basename(a)).join(', '));
+  if (saidas.length) console.log('fluxo(s) do escopo gravado(s): ' + saidas.map(a => path.basename(a)).join(', '));
   return saidas;
 }
 module.exports = { ORDEM, FLUXOS, resolver, gerar, idDe };

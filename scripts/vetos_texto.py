@@ -2,6 +2,8 @@
 """Varre todo texto do .pptx (slides, layouts, graficos) atras de caracteres vetados: travessao, meia-risca, sinal de menos, ponto medio.
 Imprime um achado por linha; saida vazia = limpo. Uso: python3 -I vetos_texto.py deck.pptx"""
 import sys, re, zipfile
+try: sys.stdout.reconfigure(encoding='utf-8')
+except Exception: pass
 VET = {'\u2014': 'travessao', '\u2013': 'meia-risca', '\u2212': 'sinal de menos', '\u00b7': 'ponto medio', '\u2015': 'barra horizontal', '\u2012': 'risca numerica', '\u2022': 'bolinha usada como separador'}
 def main(arq, so_slides=False):
     out = []

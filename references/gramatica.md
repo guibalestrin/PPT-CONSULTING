@@ -14,8 +14,8 @@ O usuário liberou tabelas, setas e conectores, diagramas com formas e ícones d
 
 | Invariante | Como aparece | Número observado |
 |---|---|---|
-| **Densidade alta** | O slide é lido, não só projetado. Cabe muita informação porque o texto é pequeno e os exhibits são compactos | 100 a 300 palavras por slide de conteúdo (mediana ~170); os mais densos chegam a 450 |
-| **Tipografia pequena e hierárquica** | Título > apoio > cabeçalho de bloco > corpo > legenda > micro-rótulo | Título 20 a 24pt; apoio 10 a 12pt; cabeçalho de bloco 10 a 12pt; **corpo 9pt**; legenda, rótulo de dado e nota 8pt; micro (eixo, data, unidade) 7pt |
+| **Densidade alta** | O slide é lido, não só projetado. Cabe muita informação porque o texto é pequeno e os exhibits são compactos | Insper Jr (vigente): 40 a 220 palavras por slide e 80% ou mais da área útil ocupada. (Legado financeiro, não usar: 100 a 300 palavras) |
+| **Tipografia pequena e hierárquica** | Título > apoio > cabeçalho de bloco > corpo > legenda > micro-rótulo | Insper Jr (vigente): título 26pt; subtítulo 14pt; cabeçalho de bloco 13,5pt; **corpo 11 a 12pt**; legenda 9 a 10pt. (Legado financeiro, não usar: título 20 a 24pt, corpo 9pt) |
 | **Três níveis de leitura** | Só os títulos dos slides contam a história; só os cabeçalhos dos blocos explicam o slide; o exhibit prova | Título-conclusão em 1 linha + apoio de 1 ou 2 linhas + 2 a 4 blocos |
 | **Miolo sem caixas** | Os blocos são separados por espaço em branco e pelo cabeçalho, não por bordas. Painel (fundo cinza `F2F2F2`) só para um aprofundamento: zoom, premissas, citação, visão geral da empresa | No máximo 1 ou 2 painéis por slide; nunca um card por bloco |
 | **2 a 4 exhibits por slide** | Um exhibit principal maior e 1 a 3 de apoio. Slides de 1 exhibit são raros (tabela grande, mapa, football field) | 2 exhibits ~45% dos slides; 3 ~25%; 4 ~20%; 1 ~10% |
@@ -213,7 +213,7 @@ Slide escuro com os pilares numerados em algarismos romanos dentro de círculos 
 | Número gigante em card com rótulo embaixo, em série | Tabela "Key Financials"; `numeroTexto` isolado ao lado do gráfico; tira de fatos |
 | Ícone dentro de círculo colorido ao lado de cada bullet | Ícone de linha pequeno, de uma cor, só onde ele identifica algo físico (etapa da cadeia, tipo de ativo); ou nenhum |
 | Gráfico padrão: grade, eixo de valores, legenda embaixo, cores sortidas, sem anotação | Sem grade nem eixo, rótulo direto, uma cor + cinzas, anotado |
-| Slide com 3 bullets grandes e muito branco | 2 a 4 exhibits, 100 a 300 palavras, corpo 9pt |
+| Slide com 3 bullets grandes e muito branco | 2 a 4 exhibits, 40 a 220 palavras, corpo 11 a 12pt, 80% da área ocupada |
 | Título-rótulo ("Análise de mercado") | Título-conclusão |
 | Seta gorda entre caixas; fluxograma de caixas arredondadas coloridas | Fio fino com ponta pequena, colchete, conector de zoom, chevron só em linha do tempo ou metodologia |
 | Tudo simétrico e do mesmo tamanho | Hierarquia: um exhibit maior, apoios menores; colunas de larguras diferentes |
