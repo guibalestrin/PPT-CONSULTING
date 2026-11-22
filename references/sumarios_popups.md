@@ -19,7 +19,7 @@ Regra de todas as referências: **o item da vez fica aceso e os outros esmaecido
 | Recomendação | Nubank p. 39 | monte com `tiraFatos`/`numeroTexto`/`faixaConclusao` (preço atual, alvo, upside, TIR, MOIC) |
 
 Estilos de `estilo` (todos **slide cheio, na cor fixa escolhida da paleta do projeto**: `fundo: 'escuro' (padrao) | 'claro' | 'dominante' | 'destaque' | hex`, `fundo2` para degrade, ou `fundoSumario` no config; em `scripts/sumario_cores.js`):
-- `'circulos'` (Orizon p012): numerais romanos em circulos de contorno fino, escalonados, com fio saindo da base.
+- `'circulos'`: **VETADO pelo usuario em 22/11/2026** (a referencia Orizon p012 foi reprovada). Nao usar.
 - `'pilulas'` (Agrion p002): pilulas de contorno fino escalonadas, circulo com numeral a esquerda.
 - `'paralelogramos'` (M&A / mabg p002): barras inclinadas escalonadas, numeral e titulo em italico; aceita `imagem` de fundo (escurecida).
 - `'cartoes'` (Vivara p007): ate 5 cartoes retos 01/02/03 lado a lado; o da vez em branco, os demais so contorno.

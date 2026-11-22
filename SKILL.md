@@ -139,7 +139,7 @@ O usuario reprovou `piramide3D` (plana, sem volume) e `funilPrismas` (prismas, n
 
 ## Sorteio e sumários
 
-`moldura.js` sorteia uma vez por projeto a barra lateral e a identidade tipográfica permitida. O cabeçalho Insper Jr é sempre marcador. O sumário tem UM modelo, salvo em `estilo_deck.json` e `identidade_visual.json`; não um conjunto para alternar. `estiloSumario` aceita `circulos`, `pilulas` ou `paralelogramos`. **`cartoes` foi vetado pelo usuário (16/11/2026)**: não é sorteado e o build dá erro se for pedido. Configuração legada `estilosSumario` aceita somente uma opção. Projeto novo pode mudar; dentro da apresentação, manter.
+`moldura.js` sorteia uma vez por projeto a barra lateral e a identidade tipográfica permitida. O cabeçalho Insper Jr é sempre marcador. O sumário tem UM modelo, salvo em `estilo_deck.json` e `identidade_visual.json`; não um conjunto para alternar. `estiloSumario` aceita `pilulas` ou `paralelogramos`. **`cartoes` (16/11/2026) e `circulos` (22/11/2026) foram vetados pelo usuário**: não são sorteados e o build dá erro se forem pedidos. Projeto antigo salvo com um deles é sorteado de novo entre os permitidos. Configuração legada `estilosSumario` aceita somente uma opção. Projeto novo pode mudar; dentro da apresentação, manter.
 
 Antes do primeiro sumário, abrir duas referências. As próximas transições reutilizam o mesmo modelo; só o destaque da etapa avança. `deck.sumario('Etapa')` calcula os itens a partir do fluxo. Títulos e descrições devem caber no tamanho fixo; encurtar o texto, não reduzir a fonte. Mais de seis etapas usam uma grade de duas colunas sem interseções, ou conteúdo dividido com o mesmo modelo e aprovação do escopo quando isso mudar a quantidade de slides.
 

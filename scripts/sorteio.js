@@ -20,9 +20,10 @@ const OPCOES = {
   corCabecalho: ['dom', 'escuro'],
 };
 // sumarios de slide cheio, na cor fixa escolhida da paleta do projeto (sumario_cores.js), todos fieis a uma referencia (orizon_p012, agrion_p002, mabg_p002, vivara_p007)
-// 'cartoes' foi VETADO pelo usuario em 16/11/2026 (colunas altas so com numero e titulo, quase tudo vazio): nao e sorteado nem aceito.
-const SUMARIOS = ['circulos', 'pilulas', 'paralelogramos'];
-const SUMARIOS_VETADOS = ['cartoes'];
+// VETADOS pelo usuario: 'cartoes' (16/11/2026: colunas altas so com numero e titulo, quase tudo vazio) e 'circulos' (22/11/2026: a
+// referencia orizon_p012 que deu origem a ele foi reprovada). Nao sao sorteados nem aceitos no config.
+const SUMARIOS = ['pilulas', 'paralelogramos'];
+const SUMARIOS_VETADOS = ['cartoes', 'circulos'];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const amostra = (a, n) => { const c = a.slice(), out = []; while (out.length < n && c.length) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]); return out; };
@@ -52,7 +53,7 @@ module.exports = function sortear(cfg, PROIB, cwd = process.cwd()) {
   const leg = Array.isArray(cfg.estilosSumario) ? [...new Set(cfg.estilosSumario)] : [];
   if (leg.length > 1) throw new Error('estilosSumario: use apenas UM modelo por apresentacao; nao alternar estilos.');
   const pedido = cfg.estiloSumario || leg[0];
-  if (SUMARIOS_VETADOS.includes(pedido)) throw new Error(`estiloSumario "${pedido}" foi VETADO pelo usuario (16/11/2026). Use: ${SUMARIOS.join(', ')} (ou omita para sortear).`);
+  if (SUMARIOS_VETADOS.includes(pedido)) throw new Error(`estiloSumario "${pedido}" foi VETADO pelo usuario. Use: ${SUMARIOS.join(', ')} (ou omita para sortear).`);
   if (pedido && !validos.includes(pedido)) throw new Error('Modelo de sumario desconhecido ou incompativel com a maior lista: ' + pedido);
   const antigo = salvo.estiloSumario || (salvo.sumarios || []).find(e => validos.includes(e));
   r.estiloSumario = pedido || (validos.includes(antigo) ? antigo : pick(validos));
