@@ -1,0 +1,1 @@
+Estrutura: o elemento do assunto (mapa, foto do ativo, logos, recorte) e o exhibit principal, com legendas e chamadas. Sem imagem real, use formas.midia descrita. Receita: references/estruturas_mercado.md.

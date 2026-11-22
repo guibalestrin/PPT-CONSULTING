@@ -1,0 +1,57 @@
+> Regra vigente (15/11/2026): um único modelo e fundo de sumário em todo o deck; paleta fixa 60/30/10; título 26pt e subtítulo 14pt, sem reduzir fonte. As composições de `contraexemplos_huawei.md` são vetadas; `faixasNumeradasArco` não pode ser usada no modo Insper Jr. Exemplos legados abaixo não substituem estas regras.
+
+# Aprendizados do usuario (ciclo de feedback)
+
+Leia **sempre**, antes de decidir a organizacao de um slide. A skill nao aprende sozinha: cada conversa comeca destes arquivos. A evolucao entra aqui, quando o usuario da feedback e o arquivo e atualizado (o usuario faz o upload da skill atualizada em Configuracoes > Capacidades > Skills, substituindo a anterior).
+
+## Como usar
+
+- Trate cada linha como regra de preferencia do usuario, a menos que ele diga o contrario na conversa atual.
+- Ao final de cada deck, pergunte em uma linha: "O que funcionou e o que nao funcionou na organizacao dos slides?". Aplicar o feedback ao deck e entregar o `.pptx` atualizado. So registrar as respostas nesta skill se o usuario solicitar sua atualizacao; so entregar ZIP da skill quando solicitado explicitamente.
+- Nao registre aqui palpites seus: so o que o usuario disse ou aprovou.
+
+## Preferencias consolidadas
+
+- **Padrao Insper Jr (15/11/2026):** o usuario quer a skill alinhada ao que se espera de um projeto de consultoria Insper Jr, com toque humano aprendido de como consultores montam slides, imagens e videos quando fizerem sentido, e variacao obrigatoria (100 execucoes = 100 resultados diferentes no mesmo padrao). Enviou 4 decks Insper Jr e uma base de conteudo dos 4 escopos (`conteudo_escopos.md`). Decisoes: (1) revelacao progressiva como copias do slide com estados; (2) ilustracao isometrica 3D e personas geradas sao aceitas, sao padrao Insper Jr; (3) o deck Theo (BellaCompra marketing) e o mais proximo do esperado; (4) prototipos de site/app/campanha viram placeholder descrito `[MOCKUP: ...]`. Pediu para seguir a proposta: Insper Jr vira o padrao da skill, decks financeiros so para valuation; nao copiar titulo-rotulo nem paginas repetidas do Theo. Ver `insperjr_padrao.md`.
+
+- **Reprovacao Starbucks (11/11/2026):** o usuario reprovou integralmente os slides 5 (concorrencia) e 6 (cliente) de `Starbucks_Brasil_Analise_Mercadologica.pptx` e pediu impedir esse padrao na skill. Abrir as duas imagens em `assets/contraexemplos/` e seguir `contraexemplos_starbucks.md`. Nao reproduzir suas composicoes em outros temas. Nao inferir aprovacao dos slides 1 a 4. A identificacao de tabela descritiva + ranking + comentario (5) e grafico + foto + paragrafos (6) e a operacionalizacao por inspecao do feedback, sem proibir os elementos isolados.
+
+- **Padrao a atingir (2026-11-11, 2a rodada):** o usuario anexou 12 PDFs e 1 PPTX de trabalhos de referencia e quer que "uma pessoa que esta vendo de fora nao saiba que foi feito por IA". Foco: **como apresentar a informacao dentro do slide** (quadrantes, formas, exhibits); barra lateral, linha divisoria, logos e capa ja estao aprovados. A skill tem que ser **generica** (qualquer case) e **nao pode ter um modelo pronto por parte do deck** ("sempre que falar de overview ja tem um layout de overview"): aprende a gramatica e compoe na hora, criativa na combinacao, "sem inventar coisas que tem cara de IA". Ver `gramatica.md`.
+- **LIBERADO (2026-11-11, 2a rodada):** tabelas, setas e conectores, diagramas com formas e icones de linha. Condicao literal: "voce pode usar, o problema e que tem que ser usado igual eles usam na apresentacao, na mesma formatacao, diagramacao etc, porque senao fica com cara de Claude". Por isso so pelas funcoes de `exhibits.js` e pelas regras de `gramatica.md`.
+- **Densidade (2026-11-11, 2a rodada):** como o PPTX anexo: corpo 9pt, legendas e notas 8pt, micro-rotulos 7pt, titulo 18 a 20pt (o codigo parte de 20pt); 100 a 300 palavras por slide.
+- **PPTX Orizon x Solvi e "mais uma referencia"**: convive com os PDFs; a geometria e os estilos da skill foram mantidos, com Montserrat liberada e `deck.notas` acrescentado.
+- **Continua vetado:** grafico de dados desenhado com formas; `listaFitas`; `setaCurva`; fio vertical antes do titulo do slide (`destaque`); linha/barra antes de texto fora da barrinha `marcador`.
+- **Slide master (2026-11-11):** o master traz layouts de 4, 3 e 2 quadrantes (recortes da grade 2x2) com barrinha + placeholder de titulo + placeholder de subtitulo por quadrante, adaptados a paleta e a barra lateral do projeto. **1 quadrante nao leva marcador.** O estilo `linha` (numeral romano "1.", "2.") continua valido: um estilo por deck, sorteado entre os 6 (`marcador` e so um deles; os layouts de quadrantes do master so existem quando ele sai).
+- **Logos sao sempre placeholders genericos** (`[LOGO: ...]`), nunca a marca de um caso: a skill e generica e nao pode deixar marca d'agua de um projeto especifico.
+- **Linha divisoria do rodape** fica colada na logo de baixo (0,15 pol da logo real), nao a uma distancia fixa da borda.
+- **Grafico: sempre o nativo do PowerPoint** (`addChart`), nunca formas.
+
+- **Estrutura**: nao repetir a mesma estrutura de slide a cada deck. Cada slide e organizado a partir do conteudo; nao precisa ser 100% diferente, mas nao pode ficar igual (ver `arranjos.md`).
+- **Sem enchimento**: nao inventar item, KPI ou etapa para completar uma forma; se o conteudo e menor que o molde, mudar a divisao.
+- **Icones**: so de linha, pequenos, onde as referencias usam (etapa de cadeia, ativo fisico). **Imagens**: preferir fotos reais; sem foto, placeholder descrito.
+- **Dados**: nada sem fonte; lacuna visivel (`[DADO: ...]`) em vez de palpite.
+- **Barra lateral**: sorteada por projeto; nao escolher por tema.
+- **Capa (2026-11-11)**: copiar literalmente a estrutura de uma das capas de referencia do usuario (`references/capas.md`, `assets/capas/`); so adaptar imagens, logos, cores e textos ao caso. A capa nao leva barra lateral.
+
+## Registro
+
+| Data | Deck | O que funcionou | O que nao funcionou | Regra derivada |
+|---|---|---|---|---|
+| 2026-11-11 | Analise mercadologica da Coca-Cola (capa, sumarios, Overview, Mercado e concorrencia) | Titulos-conclusao, fontes em todo dado, placeholders sinalizados | O slide de Overview repetiu a estrutura da composicao `overviewEmpresa` e usou enchimento (etapa "Consumidor final", grade de 6 KPIs) para caber no molde | Decidir o arranjo pelo conteudo, com 2+ alternativas; composicoes prontas so quando o conteudo encaixa (ver `arranjos.md`) |
+| 2026-11-11 | Layouts do mestre do usuario (5 prints: 4, 3, 3, 2 e 2 quadrantes) | Barrinha ao lado de titulo e subtitulo de cada quadrante; organizacao em 4, 3 e 2 quadrantes; linha divisoria curta e colada na logo | Linha divisoria longe da logo (terminava na caixa maxima da logo, nao nela); logos de exemplo no mestre (marca de caso especifico) | Layouts de quadrantes no master (secao 5A de `SKILL.md`); `marcador` liberado e padrao, `linha` mantido; linha termina a 0,15 pol da logo real; logos sempre placeholders |
+| 2026-11-11 | Analise mercadologica da Coca-Cola (teste das variacoes) | (a confirmar com o usuario qual das 3 variantes de Overview prefere) | Setas, tabelas, linhas antes de texto e grafico de formas tem cara de Claude | Proibicoes registradas em `scripts/proibicoes.js`; grafico so nativo |
+| 2026-11-11 | 5 capas de referencia (Rede D'Or, Nu, Bunge & Kepler Weber, Vibra, Agrion) | As estruturas dessas capas ja funcionam | A capa propria da skill (titulo + painel de imagem com barra lateral) | Capa = copia literal da estrutura de um dos 5 modelos (`capas.js`), escolhido pelo contexto; sem barra lateral |
+| 2026-11-11 | 12 PDFs + 1 PPTX de referencia (Kepler, M&A Bunge, Project Finance, Vivara, Vibra, Nubank, Tech, Rede D'Or, Hermes, Agrion, Tenda x2, Orizon x Solvi) | Organizacao, layout e apresentacao da informacao desses trabalhos | A skill nao conseguia gerar slides iguais: miolo ralo, texto grande, sem tabelas nem anotacoes, formas genericas | `gramatica.md` + `exhibits.js`/`exhibits.md`; densidade 9/8/7pt; convencoes de cabecalho por deck; tabelas, conectores, diagramas e icones liberados no formato das referencias |
+| 2026-11-11 | Uso da skill fora da conversa de criacao (contexto novo) | Na conversa de criacao, com as imagens das referencias em contexto, o resultado ficou impecavel | Em contexto novo a skill so tinha regras em texto: saiu com muita tabela, cards iguais e graficos sem anotacao | Biblioteca visual `assets/referencias` (69 slides) + INDICE, protocolo obrigatorio no topo do SKILL.md, trava em `deck.decidir` (referencias + exhibits) e QA com limite de tabela e grafico sem anotacao |
+| 2026-11-11 | Auditoria da skill (3a rodada) | Aprovada a analise: sorteio executavel, sumario escuro, QA mais forte, SKILL.md enxuto | Sorteio existia so para a barra; sumario branco vetado ainda era o padrao do codigo; docs e codigo divergiam (22pt x 18-20pt; funcoes vetadas ainda recomendadas) | `sorteio.js` sorteia cabecalho, titulo, cores e conjunto de sumarios (grava `estilo_deck.json`); `deck.sumario` so desenha escuro; titulo novo `assunto`/`italico` (o `destaque` vetado nao foi reativado); titulo parte de 20pt; `qa_deck.py` checa fonte, >300 palavras, texto de 4+ linhas, titulo-rotulo, divisao/exhibit/sumario repetidos, grade em grafico |
+
+| 2026-11-15 | 4 decks Insper Jr (Theo, Grupo 5, Grupo 7, case trainee) + base de conteudo | Theo e o mais proximo; revelacao progressiva, imagem grande, cards com faixa, protótipos | Skill presa ao padrao de mercado financeiro (9pt, 100-300 palavras, icones so de linha) | Modo `insperjr` padrao (moldura.js, qa_deck.py), `deck.revelar`, `formas.cardIJ`, `formas.midia`, biblioteca `ij*`, `insperjr_padrao.md`, `conteudo_escopos.md` |
+| 2026-11-11 | Starbucks Brasil, analise mercadologica, slides 5 e 6 | Nao informado neste feedback | Usuario descreveu o slide 5 como "muito cara de claude" e disse que o 6 tambem nao atende as expectativas | Registrar ambos como contraexemplos visuais obrigatorios; vetar suas composicoes e recompor a relacao entre evidencias, nao apenas acabamento. Ver `contraexemplos_starbucks.md` |
+
+- **Rodapé (2026-11-15, rodada 1 Insper Jr):** fluxo de seções menor (7,5pt, separador curto); fonte abaixo da linha, alinhada à direita, sem encostar no fluxo nem na logo; sem rodapé de notas. Informação adicional vai para apêndice ou slide seguinte de pop-up. Área útil do miolo cresceu até y 6,72.
+- **Rodada 1, 2a correção (2026-11-15):** barrinha obrigatória nos quadrantes; proibido travessão, meia-risca, menos e ponto médio; rodapé redesenhado conforme edição manual do usuário (linha em y 7,14, fluxo e fonte na mesma faixa, logo subiu).
+- **Rodada 1, 3a correcao (2026-11-15):** 7 recortes reprovados (lista numerada, faixas de KPI, 3 colunas com cabecalho sublinhado, listas com fio, chips de valor). Vetadas em Insper Jr; criadas blocoIcone, medidorCirculo, linhasCausaEfeito e painelLeitura a partir de ijtheo_p047/p088 e ijg5_p073. Ver contraexemplos_insperjr.md.
+
+## Revisão Huawei de 15/11/2026
+
+O usuário reprovou quatro composições, arquivadas em `contraexemplos_huawei.md`. Fixar sumário único e paleta 60/30/10 no projeto, corrigir geometria dos itens e reescrever títulos longos em vez de diminuir fontes. A correção deve existir nos scripts e no QA, não apenas na documentação.

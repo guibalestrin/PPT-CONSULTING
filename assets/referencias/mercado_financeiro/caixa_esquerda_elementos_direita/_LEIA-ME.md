@@ -1,0 +1,1 @@
+Estrutura: caixa a esquerda com a tese em texto; a direita, elementos que a provam. Troque o grafico por card, foto/midia, bloco com icone ou medidor. Funcao pronta: deck.composicoes.caixaLateral. Receita: references/estruturas_mercado.md.

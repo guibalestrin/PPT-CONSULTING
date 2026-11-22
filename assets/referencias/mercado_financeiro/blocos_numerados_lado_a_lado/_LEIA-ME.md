@@ -1,0 +1,1 @@
+Estrutura: 2 ou 3 blocos com cabecalho numerado, cada um com exhibit e conclusao proprios. Use deck.blocos (2c ou 3c) e varie o tipo de exhibit entre os blocos. Receita: references/estruturas_mercado.md.
