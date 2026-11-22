@@ -6,7 +6,7 @@ Aprendido dos 12 PDFs (M&A Bunge×Kepler, Nubank, Tech, Vivara, Agrion, Kepler, 
 
 ## 1. Sumários
 
-Os sumários que o usuário separou estão em `assets/referencias/sumario/`: orizon_p012 (círculos romanos escalonados), agrion_p002 (pílulas de contorno fino), mabg_p002 (paralelogramos inclinados), tech_p004 (itens com quadrado romano sobre fundo escuro) e kepl3_p010 (forma grande + itens com círculo romano) são de mercado; ijg5_p002 e ijg7_p002 são Insper Jr (numeral em hexágono e arco ligando as barras). Abra 2 antes de cada `deck.sumario` (`sortear_referencias.py --sumario --n 2`); o estilo desenhado sai do sorteio do deck.
+Os sumários que o usuário separou estão em `assets/referencias/sumario/`: agrion_p002 (pílulas de contorno fino), mabg_p002 (paralelogramos inclinados), tech_p004 (itens com quadrado romano sobre fundo escuro) e kepl3_p010 (forma grande + itens com círculo romano) são de mercado; ijg5_p002 e ijg7_p002 são Insper Jr (numeral em hexágono e arco ligando as barras). Abra 2 antes de cada `deck.sumario` (`sortear_referencias.py --sumario --n 2`); o estilo desenhado sai do sorteio do deck.
 
 Regra de todas as referências: **o item da vez fica aceso e os outros esmaecidos** (cinza claro, nunca outra cor). O mesmo sumário reaparece antes de cada seção com o item seguinte aceso. Numeral romano (I, II) ou 01/02/03; contorno fino; sem cartão arredondado e sem ícone em círculo colorido.
 

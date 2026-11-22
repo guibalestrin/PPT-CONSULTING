@@ -15,16 +15,16 @@ Leia `references/insperjr_padrao.md` antes. `ijtheo` (BellaCompra, verde) e o de
 | Pasta | Para slides de | Arquivos |
 |---|---|---|
 | `insper_jr/abertura` | capa, sumario, contexto e pergunta do cliente | ijtheo_p002, ijtheo_p114 |
-| `insper_jr/diagnostico` | 5Cs, macroambiente, variaveis | ijg7_p003, ijg7_p011, ijtheo_p004, ijtheo_p005, ijtheo_p019, ijtheo_p020 |
-| `insper_jr/publico` | perfis, clusters, personas | ijg5_p018, ijg5_p019, ijg5_p029, ijtheo_p007, ijtheo_p009, ijtheo_p011 |
+| `insper_jr/diagnostico` | 5Cs, macroambiente, variaveis | ijg7_p003, ijtheo_p004, ijtheo_p005, ijtheo_p019, ijtheo_p020 |
+| `insper_jr/publico` | perfis, clusters, personas | ijg5_p018, ijg5_p019, ijg5_p029, ijtheo_p007, ijtheo_p009 |
 | `insper_jr/concorrencia` | benchmark, mapa competitivo | ijg5_p006, ijg5_p013, ijg5_p014, ijtheo_p014, ijtheo_p087, ijtheo_p099 |
-| `insper_jr/posicionamento` | posicionamento, golden circle, valor percebido | ijg5_p038, ijg5_p043, ijtheo_p021, ijtheo_p026, ijtheo_p027, ijtheo_p076 |
-| `insper_jr/oferta_preco` | produto, portfolio, preco | ijg5_p163, ijtheo_p030, ijtheo_p077 |
-| `insper_jr/canais` | praca, processos, jornada, site/app (inclui pares de revelacao progressiva: p041 a p042) | ijg5_p062, ijg7_p047, ijtheo_p041, ijtheo_p042, ijtheo_p044, ijtheo_p046, ijtheo_p047, ijtheo_p111 |
+| `insper_jr/posicionamento` | posicionamento, golden circle, valor percebido | ijg5_p043, ijtheo_p021, ijtheo_p026, ijtheo_p027, ijtheo_p076 |
+| `insper_jr/oferta_preco` | produto, portfolio, preco | ijtheo_p030, ijtheo_p077 |
+| `insper_jr/canais` | praca, processos, jornada, site/app (inclui pares de revelacao progressiva: p041 a p042) | ijg5_p062, ijg7_p047, ijtheo_p041, ijtheo_p042, ijtheo_p044, ijtheo_p047, ijtheo_p111 |
 | `insper_jr/promocao` | campanhas, midia, influenciadores, calendario | ijtheo_p066, ijtheo_p067, ijtheo_p068, ijtheo_p070, ijtheo_p072, ijtheo_p074, ijtheo_p112, ijtheo_p113 |
-| `insper_jr/experiencia` | pessoas, evidencia fisica, colaboradores | ijtheo_p016, ijtheo_p017, ijtheo_p049 |
-| `insper_jr/operacao` | planta da loja, fluxo, estrutura, qualificadores (inclui revelacao: ijg7_p003 a p004) | ijg7_p004, ijg7_p012, ijg7_p014, ijg7_p034, ijg7_p036, ijtheo_p052, ijtheo_p055 |
-| `insper_jr/financeiro` | build-up de receita, CAPEX, unit economics, VPL, DRE | ijcase_p004, ijcase_p005, ijg5_p117, ijtheo_p079, ijtheo_p085 |
+| `insper_jr/experiencia` | pessoas, evidencia fisica, colaboradores | ijtheo_p017 |
+| `insper_jr/operacao` | planta da loja, fluxo, estrutura, qualificadores | ijg7_p034, ijg7_p036, ijtheo_p052, ijtheo_p055 |
+| `insper_jr/financeiro` | build-up de receita, CAPEX, unit economics, VPL, DRE | ijcase_p004, ijcase_p005, ijtheo_p079, ijtheo_p085 |
 | `insper_jr/prova` | entrevista, citacao, video, posts reais | ijcase_p003, ijg7_p044 |
 | `insper_jr/revelacao` | as formas de revelacao progressiva | ijg5_p007 |
 
@@ -42,7 +42,7 @@ Escolha a pasta pelo que a MENSAGEM do slide pede, nao pelo assunto do deck de o
 
 ## 3. Sumarios (`sumario/`)
 
-agrion_p002, ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, orizon_p012, tech_p004
+agrion_p002, ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, tech_p004
 
 Detalhe de pop-up, faixa-pergunta e indice: `references/sumarios_popups.md`.
 

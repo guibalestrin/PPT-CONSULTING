@@ -15,7 +15,7 @@ O usuário mandou 7 recortes de slides gerados pela skill e disse: "todas essas 
 - **Problema → ação** com X vermelho e check verde, e seta fina ligando "de" a "para" (ijtheo_p047).
 - **Número grande dentro de círculo** ligado ao gráfico (ijtheo_p088) ou **dentro do gráfico** como callout (ijg5_p073, ijg5_p084).
 - **Painel de leitura**: caixa com contorno e sombra dura, títulos em negrito na cor colados ao texto, sem fio (ijg5_p073, ijg5_p084).
-- **Imagem do assunto em tamanho grande** (persona, loja, produto, mapa) em vez de mais um bloco de texto (ijtheo_p011, ijg5_p018, ijtheo_p030).
+- **Imagem do assunto em tamanho grande** (persona, loja, produto, mapa) em vez de mais um bloco de texto (ijg5_p018, ijtheo_p030).
 - Ideia por página (revelação) em vez de três colunas iguais empilhadas na mesma página.
 
 ## Regras
