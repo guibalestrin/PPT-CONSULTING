@@ -10,7 +10,7 @@ A skill entrega o **sketch completo do projeto** (fluxo do escopo, organização
 
 **No Claude Code:** clone o repositório dentro da pasta de skills. A skill passa a usar sempre a versão do repositório; um `git pull` atualiza.
 ```powershell
-git clone https://github.com/<usuario>/PPT-CONSULTING "$HOME\.claude\skills\slides-consultoria-br"
+git clone https://github.com/guibalestrin/PPT-CONSULTING "$HOME\.claude\skills\slides-consultoria-br"
 ```
 
 Requisitos: Node.js com `pptxgenjs`, Python com `lxml` (Pillow opcional) e PowerPoint para a prévia (ou LibreOffice). No Windows, `scripts/preparar.ps1` confere tudo e prepara a pasta do deck.
