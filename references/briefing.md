@@ -13,17 +13,20 @@ Este arquivo e apoio. Em caso de conflito, vale o `SKILL.md` (secoes "Contrato d
 - **Formato:** sempre `.pptx` editavel.
 - Cabecalho, titulo, cor de titulo e sumarios: sao sorteados (`SKILL.md`, "Sorteio").
 
+- **Quantidade de slides:** nao e decisao previa. Resulta do porte da empresa, do escopo e da evidencia que a pesquisa trouxer. A skill propoe a lista de titulos no resumo e o usuario ajusta depois.
+- **Barra lateral:** sorteada (`SKILL.md`, "Sorteio"); so muda se o usuario nomear uma.
+- **Subtitulo da capa:** proposto no resumo, nao perguntado.
+
 ## Perguntar (so o que faltar)
 
-1. **Escopo(s) e pergunta do cliente:** mercadologico, operacional, marketing/7Ps, financeiro (viabilidade); fase (diagnostico, parcial, final, pitch); "Fomos contratados para responder..."
-2. **Quantidade de slides** (ou autorizacao para propor a estrutura a partir das secoes padrao).
-3. **Nome do trabalho e subtitulo** (titulo da capa, empresa analisada).
-4. **Integrantes** (sempre perguntar), mentor/coordenador, logos da Insper Jr e da consultoria parceira.
-5. **Empresa analisada:** nome e logo.
-6. **Paleta:** três cores nos papéis 60/30/10; sem paleta, ofereca 2 ou 3 opcoes derivadas das logos.
+1. **Escopo(s) e fase:** mercadologico, operacional, marketing/7Ps, financeiro (viabilidade); diagnostico, parcial, final ou pitch.
+2. **Pergunta do cliente** ("Fomos contratados para responder..."): so se nao estiver no pedido; aceite "deduza pelo escopo".
+3. **Empresa analisada e nome do trabalho.**
+4. **Integrantes** (sempre perguntar), mentor/coordenador.
+5. **Logos e fotos:** Insper Jr, consultoria parceira, empresa; anexar ou placeholder.
+6. **Paleta:** tres cores nos papeis 60/30/10; sem paleta, ofereca 2 ou 3 opcoes derivadas das logos ou da identidade da empresa.
 7. **Tipografia:** Montserrat, Gill Sans MT ou Dubai.
-8. **Dados:** o usuario anexa, a skill pesquisa, ou misto.
-9. **Barra lateral:** sortear entre as 7 ou o usuario nomeia uma.
+8. **Material:** o usuario anexa dados/relatorios, a skill pesquisa, ou misto.
 
 Opcionais (aceite "tanto faz"): rodape da capa (curso, data), prazo ou duracao, `registro_decisoes.json` de um deck anterior.
 
