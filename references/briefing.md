@@ -2,7 +2,7 @@
 
 # Briefing enxuto (Insper Jr)
 
-Este arquivo e apoio. Em caso de conflito, vale o `SKILL.md` (secoes "Contrato de inicio e entrega" e "Padroes que dispensam pergunta"). Cada projeto tem cliente, marca e narrativa proprios: nunca reaproveite itens de outro projeto sem confirmacao nesta conversa. Pergunte pelo painel `AskUserQuestion`, em ate 3 chamadas, so o que o usuario ainda nao informou, e aguarde as respostas antes de trabalhar.
+Este arquivo e apoio. Em caso de conflito, vale o `SKILL.md` (secoes "Contrato de inicio e entrega" e "Padroes que dispensam pergunta"). Cada projeto tem cliente, marca e narrativa proprios: nunca reaproveite itens de outro projeto sem confirmacao nesta conversa. Pergunte as escolhas pelo painel `AskUserQuestion`, em ate 2 chamadas, e os dados de texto livre (empresa, nome do trabalho, integrantes, logos) em uma unica mensagem de texto pedindo tudo de uma vez, sem perguntar "vai digitar?"; so o que o usuario ainda nao informou, e aguarde as respostas antes de trabalhar.
 
 ## NAO perguntar (ja decidido pelo usuario)
 
