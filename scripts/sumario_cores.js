@@ -2,7 +2,8 @@
 // assets/referencias/sumario/:
 //   circulos       orizon_p012 : numerais romanos em circulos de contorno fino, escalonados, fio saindo da base de cada circulo
 //   pilulas        agrion_p002 : pilulas de contorno fino escalonadas, circulo com numeral a esquerda
-//   paralelogramos mabg_p002   : paralelogramos escalonados, numeral e titulo em italico (aceita foto de fundo com veu: imagem)
+//   paralelogramos mabg_p002   : paralelogramos escalonados, numeral e titulo em italico
+// Foto (imagem) entra pela composicao: fotoEsquerda | fotoDireita | fotoFundo | cheio; titulo, fios e logo sao opcionais (moldura).
 //   cartoes        vivara_p007 : cartoes retos lado a lado 01/02/03; o da vez cheio, os demais so com contorno
 // Cor: `fundo` aceita 'escuro' (padrao: degrade da dominante), 'claro', 'dominante', 'destaque' ou qualquer hex ('1F3A5F'); `fundo2` opcional
 // forma o degrade. O texto, os fios e o item apagado se ajustam sozinhos ao contraste do fundo escolhido (>= 4:1). Sem limitacao de cor.
@@ -46,50 +47,102 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
   const runsApoio = (t, o) => String(t).split(/(\*[^*]+\*)/).filter(Boolean).map(p => /^\*.*\*$/.test(p)
     ? { text: p.slice(1, -1), options: Object.assign({}, o, { bold: true }) } : { text: p, options: Object.assign({}, o) });
 
-  function fundo(s, o) {
-    const foto = o.imagem && fs.existsSync(o.imagem) ? o.imagem : null;
-    if (foto) {
-      s.addImage({ path: foto, x: 0, y: 0, w: W, h: H, sizing: { type: 'cover', w: W, h: H } });
-      s.addShape(S.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: P.a, transparency: 22 }, line: { type: 'none' }, objectName: 'SUM_veu' });
+  // ---- composicao (feedback 23/11/2026): a foto NAO precisa ficar a direita. Sorteada uma vez por deck entre
+  // fotoEsquerda (imagem a esquerda, itens em arco a direita: kepl3_p010, ex_sumario), fotoDireita (itens a esquerda),
+  // fotoFundo (foto em tela cheia com veu em degrade: mabg_p002) e cheio (sem foto: agrion_p002). A foto nunca termina
+  // em corte seco: um degrade com transparencia a dissolve no fundo, e o fundo do lado da foto tem a mesma cor do degrade.
+  // fotoDireitaFio (APROVADO 23/11/2026, deck Audemars Piguet com circulos: "tava perfeito"): foto recortada na direita a partir de
+  // x 8,55, fio fino vertical na cor dominante, logo da empresa numa faixa escura no pe da foto. Ver assets/referencias/sumario/aprovado_ap_circulos_foto.jpg.
+  // Com pilulas a mesma montagem foi REPROVADA (Bluefit): por isso o sorteio so a combina com circulos.
+  const COMPOSICOES = ['fotoEsquerda', 'fotoDireita', 'fotoDireitaFio', 'fotoFundo', 'cheio'];
+  const XF_D = 7.75, XF_E = 5.55, FADE = 2.4;
+  function geo(o) {
+    const comp = o.foto ? o.composicao : 'cheio', m = o.moldura;
+    const topo = m.titulo === 'nenhum' ? 0.75 : 1.44, base = m.logo || m.fios ? 6.5 : 6.9;
+    if (comp === 'fotoDireita') return { comp, x0: 0.9, x1: XF_D - 0.45, topo, base };
+    if (comp === 'fotoDireitaFio') return { comp, x0: 0.9, x1: 8.55 - 0.45, topo, base };
+    if (comp === 'fotoEsquerda') return { comp, x0: XF_E + 0.25, x1: W - 0.7, topo, base };
+    return { comp, x0: 0.9, x1: W - 0.9, topo, base };
+  }
+  function grad(s, r, ang, stops, nomeBase) {
+    const nome = 'GR_' + nomeBase + '_' + (++nGr);
+    formas.degrades[nome] = { ang, stops };
+    s.addShape(S.RECTANGLE, Object.assign({}, r, { fill: { color: stops[0][1] }, line: { type: 'none' }, objectName: nome }));
+  }
+  function fundo(s, o, g) {
+    if (g.comp === 'cheio') { grad(s, { x: 0, y: 0, w: W, h: H }, 45, [[0, P.a, 100], [100, P.b, 100]], 'sumesc'); return; }
+    if (g.comp === 'fotoDireitaFio') {   // montagem aprovada (AP): recorte limpo com fio, sem degrade
+      const XL = 8.55;
+      grad(s, { x: 0, y: 0, w: W, h: H }, 45, [[0, P.a, 100], [100, P.b, 100]], 'sumesc');
+      s.addImage({ path: o.foto, x: XL, y: 0, w: W - XL, h: H, sizing: { type: 'cover', w: W - XL, h: H }, objectName: 'SUM_foto' });
+      s.addShape(S.RECTANGLE, { x: XL - 0.06, y: 0, w: 0.06, h: H, fill: { color: o.corFio || COR.dom }, line: { type: 'none' }, objectName: 'SUM_fio_lateral' });
+      if (o.logoEmpresa && fs.existsSync(o.logoEmpresa)) {
+        s.addShape(S.RECTANGLE, { x: XL, y: H - 1.25, w: W - XL, h: 1.25, fill: { color: '000000', transparency: 12 }, line: { type: 'none' }, objectName: 'SUM_faixa_logo' });
+        const b = fs.readFileSync(o.logoEmpresa), ar = b.readUInt32BE(16) / b.readUInt32BE(20), lw = Math.min(W - XL - 0.9, 0.8 * ar), lh = lw / ar;
+        s.addImage({ path: o.logoEmpresa, x: XL + (W - XL - lw) / 2, y: H - 0.625 - lh / 2, w: lw, h: lh, objectName: 'SUM_logo_empresa' });
+      }
       return;
     }
-    const nome = 'GR_sumesc_' + (++nGr);
-    formas.degrades[nome] = { ang: 45, stops: [[0, P.a, 100], [100, P.b, 100]] };
-    s.addShape(S.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: P.b }, line: { type: 'none' }, objectName: nome });
+    if (g.comp === 'fotoFundo') {
+      s.addImage({ path: o.foto, x: 0, y: 0, w: W, h: H, sizing: { type: 'cover', w: W, h: H }, objectName: 'SUM_foto' });
+      grad(s, { x: 0, y: 0, w: W, h: H }, 0, [[0, P.a, 94], [55, P.a, 82], [100, P.a, 45]], 'sumveu');   // denso onde esta o texto
+      return;
+    }
+    const dir = g.comp === 'fotoDireita', xf = dir ? XF_D : 0, wf = dir ? W - XF_D : XF_E;
+    // fundo em degrade horizontal que termina na cor do lado da foto (P.a): o degrade da foto cai na mesma cor, sem emenda
+    // o degrade do fundo vai de P.b (borda oposta) ate P.a exatamente na borda da foto; sob a foto, P.a solido
+    s.addShape(S.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: P.a }, line: { type: 'none' }, objectName: 'SUM_base' });
+    grad(s, dir ? { x: 0, y: 0, w: xf, h: H } : { x: wf, y: 0, w: W - wf, h: H }, 0, dir ? [[0, P.b, 100], [100, P.a, 100]] : [[0, P.a, 100], [100, P.b, 100]], 'sumesc');
+    s.addImage({ path: o.foto, x: xf, y: 0, w: wf, h: H, sizing: { type: 'cover', w: wf, h: H }, objectName: 'SUM_foto' });
+    s.addShape(S.RECTANGLE, { x: xf, y: 0, w: wf, h: H, fill: { color: P.a, transparency: 70 }, line: { type: 'none' }, objectName: 'SUM_tinta' });
+    grad(s, { x: dir ? xf : xf + wf - FADE, y: 0, w: FADE, h: H }, 0, dir ? [[0, P.a, 100], [100, P.a, 0]] : [[0, P.a, 0], [100, P.a, 100]], 'sumfade');
+    if (o.logoEmpresa && fs.existsSync(o.logoEmpresa)) {   // logo da empresa sobre a foto, numa sombra em degrade (sem faixa recortada)
+      grad(s, { x: xf, y: H - 2.2, w: wf, h: 2.2 }, 90, [[0, P.a, 0], [100, P.a, 92]], 'sumbase');
+      const b = fs.readFileSync(o.logoEmpresa), ar = b.readUInt32BE(16) / b.readUInt32BE(20);
+      const lw = Math.min(wf - FADE - 0.6, 0.75 * ar, 3.2), lh = lw / ar, cx = dir ? xf + FADE / 2 + (wf - FADE / 2) / 2 : (wf - FADE / 2) / 2;
+      s.addImage({ path: o.logoEmpresa, x: cx - lw / 2, y: H - 0.55 - lh, w: lw, h: lh, objectName: 'SUM_logo_empresa' });
+    }
   }
-  // Moldura (titulo "Sumário", fios e logo) e OPCIONAL: so desenha com { moldura: true }. Nao e regra; era detalhe de uma referencia.
-  function moldura(s, o) {
-    if (!o.moldura) return;
-    T(s, o.titulo || 'Sumário', { x: 0.6, y: 0.42, w: W - 1.2, h: 0.62, fontSize: 26, bold: true, align: 'center', objectName: 'SUM_titulo' });
-    s.addShape(S.LINE, { x: 0.6, y: 1.14, w: W - 1.2, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_topo' });
-    s.addShape(S.LINE, { x: 0.6, y: 6.86, w: 10.3, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_base' });
+  // moldura opcional (feedback 23/11/2026): titulo, fios e logo NAO sao obrigatorios. o.moldura = { titulo: 'esquerda'|'centro'|
+  // 'direita'|'nenhum', texto, fios: bool, logo: bool }, sorteado uma vez por deck (sorteio.js) e mantido em todos os sumarios.
+  function moldura(s, o, g) {
+    const m = o.moldura;
+    if (m.titulo !== 'nenhum') T(s, m.texto || o.titulo || 'Sumário', { x: g.x0, y: 0.42, w: g.x1 - g.x0, h: 0.62, fontSize: 26, bold: true, align: { esquerda: 'left', centro: 'center', direita: 'right' }[m.titulo], objectName: 'SUM_titulo' });
+    if (m.fios && m.titulo !== 'nenhum') s.addShape(S.LINE, { x: g.x0 - 0.3, y: 1.14, w: g.x1 - g.x0 + 0.3, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_topo' });
+    const lgx = g.x1 - 1.55;
+    if (m.fios) s.addShape(S.LINE, { x: g.x0 - 0.3, y: 6.86, w: (m.logo ? lgx - 0.3 : g.x1) - g.x0 + 0.3, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_base' });
+    if (!m.logo) return;
     const lg = cfg.logos && cfg.logos.apresentador;
-    if (lg && fs.existsSync(lg)) s.addImage({ path: lg, x: 11.2, y: 6.62, w: 1.55, h: 0.5, sizing: { type: 'contain', w: 1.55, h: 0.5 }, objectName: 'SUM_logo' });
+    if (lg && fs.existsSync(lg)) s.addImage({ path: lg, x: lgx, y: 6.62, w: 1.55, h: 0.5, sizing: { type: 'contain', w: 1.55, h: 0.5 }, objectName: 'SUM_logo' });
     else {
-      s.addShape(S.RECTANGLE, { x: 11.2, y: 6.62, w: 1.55, h: 0.5, fill: { color: P.fg, transparency: 90 }, line: { color: P.fg, width: 0.75, dashType: 'dash', transparency: 40 }, objectName: 'SUM_logo_ph' });
-      T(s, '[LOGO: quem apresenta]', { x: 11.2, y: 6.62, w: 1.55, h: 0.5, fontSize: 7, align: 'center', color: P.apagado });
+      s.addShape(S.RECTANGLE, { x: lgx, y: 6.62, w: 1.55, h: 0.5, fill: { color: P.fg, transparency: 90 }, line: { color: P.fg, width: 0.75, dashType: 'dash', transparency: 40 }, objectName: 'SUM_logo_ph' });
+      T(s, '[LOGO: quem apresenta]', { x: lgx, y: 6.62, w: 1.55, h: 0.5, fontSize: 7, align: 'center', color: P.apagado });
     }
   }
 
-  // Uma célula inclui todo o contorno. Altura e passo não podem ser independentes.
-  function layout(estilo, n) {
+  // Uma célula inclui todo o contorno. Altura e passo não podem ser independentes. Os itens ocupam a altura livre (centralizados);
+  // escalonamento: diagonal (fotoDireita, cheio, fotoFundo) ou em arco convexo, afastando-se da foto (fotoEsquerda, como kepl3_p010).
+  function layout(estilo, n, g) {
+    g = g || { comp: 'cheio', x0: 0.9, x1: 12.43, topo: 1.44, base: 6.46 };
     if (!Number.isInteger(n) || n < 1 || n > 10) throw new Error('Sumario: use 1 a 10 itens.');
+    const LU = g.x1 - g.x0, AH = g.base - g.topo;
     if (estilo === 'cartoes') {
       if(n>5) throw new Error('cartoes aceita ate cinco itens; escolher modelo compativel antes do primeiro sumario.');
-      const gap=.24, w=(11.53-gap*(n-1))/n;
-      return Array.from({length:n},(_,i)=>({x:.9+i*(w+gap),y:1.7,w,h:4.8}));
+      const gap=.24, w=(LU-gap*(n-1))/n;
+      return Array.from({length:n},(_,i)=>({x:g.x0+i*(w+gap),y:g.topo+.26,w,h:AH-.3}));
     }
-    const cols=n>6?2:1, rows=Math.ceil(n/cols), gapY=.14, gapX=.36;
-    const h=Math.min(1.12,(5.02-gapY*(rows-1))/rows), cw=(11.53-gapX*(cols-1))/cols;
+    const cols=n>6?2:1, rows=Math.ceil(n/cols), gapY=rows<=3?.3:.16, gapX=.36;
+    const h=Math.min(1.2,(AH-gapY*(rows-1))/rows), cw=(LU-gapX*(cols-1))/cols, desl=(AH-(rows*h+gapY*(rows-1)))/2;
+    const recuo=Math.min(2.3,LU*.2), arco=g.comp==='fotoEsquerda';
     return Array.from({length:n},(_,i)=>{
-      const col=Math.floor(i/rows), row=i%rows;
-      const shift=cols===1?row*Math.min(.55,2.3/Math.max(1,rows-1)):0;
-      return {x:.9+col*(cw+gapX)+shift,y:1.44+row*(h+gapY),w:cw-(cols===1?2.3:0),h};
+      const col=Math.floor(i/rows), row=i%rows, t=rows>1?row/(rows-1):0;
+      const shift=cols>1?0:arco?recuo*Math.sin(Math.PI*t):row*Math.min(.55,recuo/Math.max(1,rows-1));
+      return {x:g.x0+col*(cw+gapX)+shift,y:g.topo+desl+row*(h+gapY),w:cw-(cols===1?recuo:0),h};
     });
   }
   function validar(rects) {
     rects.forEach((a,i)=>{
-      if(a.x<.59 || a.y<1.3 || a.x+a.w>12.75 || a.y+a.h>6.55)throw new Error('Item de sumario fora da area: '+i);
+      if(a.x<.59 || a.y<.7 || a.x+a.w>12.75 || a.y+a.h>6.95)throw new Error('Item de sumario fora da area: '+i);
       rects.slice(i+1).forEach(b=>{
         if(Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)>.001 && Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)>.001)throw new Error('Itens de sumario sobrepostos.');
       });
@@ -111,11 +164,16 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
   let identidadeFixa=null;
   function desenhar(s, estilo, itens, ativo, o={}) {
     if(!['circulos','pilulas','paralelogramos','cartoes'].includes(estilo))throw new Error('Modelo de sumario desconhecido: '+estilo);
-    const assinatura=JSON.stringify([estilo,o.fundo||cfg.fundoSumario||'escuro',o.fundo2||null,o.imagem||null]);
-    if(identidadeFixa && identidadeFixa!==assinatura)throw new Error('Modelo e fundo do sumario devem ser os mesmos em toda a apresentacao.');
+    // moldura: true (desenha titulo centralizado, fios e logo) | false (nada) | objeto { titulo, texto, fios, logo } (sorteado em sorteio.js)
+    const mol=o.moldura===true?{titulo:'centro',fios:true,logo:true}:(o.moldura===false||o.moldura==null)?{titulo:'nenhum',fios:false,logo:false}:Object.assign({titulo:'nenhum',fios:false,logo:false},o.moldura);
+    o=Object.assign({},o,{foto:(o.imagem&&fs.existsSync(o.imagem))?o.imagem:null,composicao:o.composicao||'cheio',moldura:mol});
+    if(!COMPOSICOES.includes(o.composicao))throw new Error('composicao de sumario desconhecida: '+o.composicao+'. Use: '+COMPOSICOES.join(', '));
+    if(!['esquerda','centro','direita','nenhum'].includes(o.moldura.titulo))throw new Error('moldura.titulo do sumario: esquerda, centro, direita ou nenhum');
+    const assinatura=JSON.stringify([estilo,o.fundo||cfg.fundoSumario||'escuro',o.fundo2||null,o.foto,o.composicao,o.moldura,o.logoEmpresa||null]);
+    if(identidadeFixa && identidadeFixa!==assinatura)throw new Error('Modelo, fundo, foto, composicao e moldura do sumario devem ser os mesmos em toda a apresentacao.');
     identidadeFixa=assinatura;
-    const rects=layout(estilo,itens.length);validar(rects);
-    paleta(o);fundo(s,o);moldura(s,o);
+    const g=geo(o), rects=layout(estilo,itens.length,g);validar(rects);
+    paleta(o);fundo(s,o,g);moldura(s,o,g);
     itens.forEach((it,i)=>{
       const r=rects[i],on=ativo==null||ativo===i,cor=on?P.fg:P.apagado;
       if(estilo==='cartoes') {
@@ -135,5 +193,5 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
       conteudo(s,it,{x:r.x+d+.22,y:r.y+.065,w:r.w-d-.42,h:r.h-.13},cor);
     });
   }
-  return {desenhar,layout,validar,ESTILOS:['circulos','pilulas','paralelogramos','cartoes']};
+  return {desenhar,layout,validar,geo,COMPOSICOES,ESTILOS:['circulos','pilulas','paralelogramos','cartoes']};
 };
