@@ -4,7 +4,7 @@
 
 Leia **sempre** antes de montar a capa. Regra do usuario (2026-11-11): **na capa a estrutura e copiada literalmente**, porque ja funciona. So se adaptam imagens, logos, cores (paleta do deck) e textos do caso. Nao invente capa nova, nao misture modelos, nao "melhore" a composicao. A capa **nao tem barra lateral** nem moldura.
 
-Sao 10 modelos, todos em `scripts/capas.js`; as imagens de referencia ficam em `assets/capas/ref_<modelo>.jpg` (abra com Read para ver o original antes de montar). As marcas que aparecem nas referencias sao so documentacao: nunca entram num deck.
+Sao 11 modelos, todos em `scripts/capas.js`; as imagens de referencia ficam em `assets/capas/ref_<modelo>.jpg` (abra com Read para ver o original antes de montar). As marcas que aparecem nas referencias sao so documentacao: nunca entram num deck.
 
 ```javascript
 deck.capa({
@@ -35,6 +35,7 @@ deck.capa({
 | `poligonos_centro` | 3R Petroleum, *Final Analysis* | Sem foto nem produto; marca so por logo; relatorio final, 1 ou 2 logos (empresa e grupo) | logo da empresa e do grupo (brancas) |
 | `foto_onda_base` | Mateus, *Insper Asset* | A empresa tem fachada, loja, planta ou ativo fisico reconhecivel; foto horizontal forte | foto da fachada/ativo em tela cheia; logo da empresa (branca) |
 | `produto_onda` | Cimed, *Private Equity Thesis* | Produto/embalagem icone da marca (medicamento, bebida, higiene) e uma foto aerea ou da fabrica ao fundo | `objeto` em PNG recortado sem fundo; `imagem` de fundo (fica esmaecida) |
+| `objeto_marca` | Hermes (conceito: capa como embalagem) | O setor tem um objeto reconhecivel (carrinho, garrafa, caixa, predio...) e nao ha foto ou embalagem propria; capa criativa com a cara do negocio | `silhueta` (objeto ou setor, ver `silhuetas.js`); logo da empresa (branca) |
 
 Varie entre decks quando o contexto permitir mais de um modelo (preferencia do usuario: variacao entre decks, nao 100% diferente). Diga na entrega qual modelo foi usado e por que, em uma linha, para o usuario poder pedir outro. Se o modelo exige algo que nao veio (foto, ticker), use placeholder/`[DADO: ...]` e liste na pendencia; nao troque de modelo so para esconder a lacuna sem avisar.
 
@@ -62,6 +63,12 @@ Varie entre decks quando o contexto permitir mais de um modelo (preferencia do u
 
 **`produto_onda`**: foto aerea/da fachada esmaecida ao fundo (veu branco + tinta da marca). **Objeto recortado** grande a esquerda sobre uma mancha na cor dominante; faixa grafite curva na base com `titulo` em italico branco; mancha dominante no canto inferior direito com integrantes alinhados a direita; cunha grafite no canto superior direito com o logo do grupo.
 
+**`objeto_marca`**: degrade da cor escura para a dominante com o **objeto do setor em padrao** tom sobre tom (a ideia da estampa da Hermes). Medalhao escuro a direita com o objeto como heroi em linha grossa branca e fio fino. Esquerda: logo da empresa, `titulo` (38pt, ate 2 linhas), traço de destaque, `subtitulo`, integrantes e creditos na base, logo do grupo no canto.
+
+## Sorteio da capa (23/11/2026)
+
+`deck.capa` **sem `modelo`** usa o modelo sorteado do projeto (`estilo_deck.json`, gravado por `scripts/propor_visual.js`; sem arquivo, sorteia na hora). O sorteio so considera os modelos cujo elemento existe: `foto_lateral`, `ondas_foto`, `foto_onda_base` pedem `foto`; `triangulos_fotos` pede `fotos`; `produto_onda` pede `objeto` (PNG recortado); `recomendacao` pede `recomendacao`; `objeto_marca` pede `silhueta`; `circulo`, `radial`, `fita_padrao` e `poligonos_centro` so pedem o logo. Em `fita_padrao`, `silhueta` troca o monograma por um padrao do objeto do setor (caixas, carrinhos). Detalhes e tabela setor > objeto em `references/conceito_marca.md`. Passar `modelo` explicito continua valendo quando o usuario nomear a capa.
+
 ## Elemento da marca (regra para TODOS os modelos)
 
 Toda capa de referencia tem **uma peca que e da marca dela** (e so dela). Na capa nova essa peca precisa existir **e ser da empresa do caso**; copiar a estrutura sem trocar a peca e o erro mais comum. Antes de escolher o modelo, defina qual e o elemento da marca do caso e se ele existe (arquivo ou possibilidade de montar):
@@ -73,6 +80,7 @@ Toda capa de referencia tem **uma peca que e da marca dela** (e so dela). Na cap
 | `poligonos_centro` | lockup de logos 3R + grupo | logo da empresa + logo do grupo | 1 logo so: centralizar sozinho e avisar |
 | `foto_onda_base` | render da fachada Mateus | foto da fachada, loja, planta ou ativo da empresa | `foto_lateral` com foto neutra ou placeholder |
 | `produto_onda` | caixa do remedio Cimed + foto aerea da fabrica | embalagem/produto recortado + foto da operacao | sem objeto recortado, nao use este modelo |
+| `objeto_marca` | padrao de caixas/objetos na estampa da Hermes | objeto generico do setor (carrinho, garrafa) via `silhueta`; nunca a marca de outra empresa | escolher outro modelo |
 | `foto_lateral` / `ondas_foto` | cena da operacao / ativo fisico | foto da operacao ou ativo do caso | |
 | `recomendacao` / `circulo` / `radial` | placa BR / logo Nu / logo Agrion | objeto ou logo do caso | |
 

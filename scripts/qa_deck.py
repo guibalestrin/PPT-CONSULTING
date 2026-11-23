@@ -112,7 +112,7 @@ for n in slides:
     titulo_sz, outros, palavras = None, [], 0
     nomes_slide, titulo_txt, longos = set(), '', []
     if b'umario_' in z.read(n) or b'GR_sumario' in z.read(n) or b'SUM_' in z.read(n): sumarios.add(idx)
-    for tag, est in (('SUM_circulo', 'circulos'), ('SUM_pilula', 'pilulas'), ('SUM_paralelogramo', 'paralelogramos'), ('SUM_cartao', 'cartoes'), ('SUM_faixa', 'faixas_logo'), ('SUM_hexagono', 'hexagonos_arco'), ('SUM_trilha_marca', 'trilha_pergunta'), ('SUM_losango', 'losangos_celular')):
+    for tag, est in (('SUM_circulo', 'circulos'), ('SUM_pilula', 'pilulas'), ('SUM_paralelogramo', 'paralelogramos'), ('SUM_cartao', 'cartoes'), ('SUM_faixa', 'faixas_logo'), ('SUM_hexagono', 'hexagonos_arco'), ('SUM_trilha_marca', 'trilha_pergunta'), ('SUM_losango', 'losangos_celular'), ('SUM_marcador', 'objeto_marcadores')):
         if tag.encode() in z.read(n): estilos_sumario.append((idx, est)); break
     eh_capa = any((e.find('.//p:cNvPr', NS) is not None and e.find('.//p:cNvPr', NS).get('name') == 'CAPA_TITULO') for e in root.iter('{%s}sp' % P))
     # ---- habitos de IA que as referencias NAO tem (tabelas, setas, diagramas e icones foram liberados em 2026-11-11, desde que no
@@ -168,7 +168,7 @@ for n in slides:
     for sp in root.iter('{%s}sp' % P):
         cn=sp.find('.//p:cNvPr',NS); nm=cn.get('name','') if cn is not None else ''
         bx=caixa(sp)
-        if re.match(r'^SUM_(circulo|pilula|paralelogramo|cartao|faixa|hexagono|trilha|losango)\d+$',nm) and bx: containers.append((nm,bx))
+        if re.match(r'^SUM_(circulo|pilula|paralelogramo|cartao|faixa|hexagono|trilha|losango|marcador)\d+$',nm) and bx: containers.append((nm,bx))
         if nm in ('APOIO','CAB_TITULO','CAB_SUBTITULO','SUM_item_titulo','SUM_item_desc','SUM_titulo'):
             esperado={'APOIO':14,'CAB_TITULO':13.5,'CAB_SUBTITULO':11.5,'SUM_item_titulo':16,'SUM_item_desc':11.5,'SUM_titulo':26}[nm]
             for runs in paragrafos(sp):

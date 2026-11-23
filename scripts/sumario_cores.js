@@ -9,7 +9,7 @@
 // Regra fixa: o item da vez fica aceso (cor de texto cheia, contorno mais grosso) e os demais ficam na dominante ajustada, sempre legiveis.
 // Serve para transicao de secao (itens = secoes do deck) e para pilares da tese (itens proprios; ativo null = todos acesos).
 // Sem barra lateral nem moldura (slide de layout 'Capa'); os avisos do qa_deck.py de "sem titulo" e "fora da area util" sao esperados.
-module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow }) {
+module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow, sil }) {
   const S = pres.shapes, W = 13.333, H = 7.5, fs = require('fs');
   const ROM = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   let nGr = 0;
@@ -116,11 +116,12 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow 
   //   faixas_logo      (Kepler Weber)     inicial/forma da logo da empresa em contorno + faixas que "saem" da forma   -> `marca` (config ou deck.sumario)
   //   hexagonos_arco   (Rede D'Or)        hexagonos numerados sobre um arco, um por pilar                          -> pilares da tese (itens com desc)
   //   trilha_pergunta  (Wine)             trilha vertical + curva pontilhada ate a pergunta; foto do caso ao fundo  -> `imagem` (foto do caso) e `pergunta`
+  //   objeto_marcadores (conceito)       OBJETO DO SETOR (carrinho, garrafa...) gigante a direita e o mesmo objeto como marcador de cada item -> `silhueta` (config ou deck.sumario)
   //   losangos_celular (BTG)              losangos numerados + mockup de celular com a tela do PRODUTO da empresa   -> `mockup` e `valor` em cada item
   // Regras iguais as demais: so o item ativo muda; os outros ficam na cor apagada; fontes fixas (16pt titulo, 11,5pt descricao).
   // =====================================================================
-  const NOVOS = ['faixas_logo', 'hexagonos_arco', 'trilha_pergunta', 'losangos_celular'];
-  const MAXN = { circulos: 10, pilulas: 10, paralelogramos: 10, cartoes: 5, faixas_logo: 8, hexagonos_arco: 6, trilha_pergunta: 10, losangos_celular: 5 };
+  const NOVOS = ['faixas_logo', 'hexagonos_arco', 'trilha_pergunta', 'losangos_celular', 'objeto_marcadores'];
+  const MAXN = { circulos: 10, pilulas: 10, paralelogramos: 10, cartoes: 5, faixas_logo: 8, hexagonos_arco: 6, trilha_pergunta: 10, losangos_celular: 5, objeto_marcadores: 8 };
   const HEX_ARCO = { cx: -1.9, cy: 3.95, R: 3.6 };
   function hexPos(i, n) {
     const h = Math.min(1.3, 4.9 / n), yc = 1.55 + h * (i + 0.5), dx = Math.sqrt(Math.max(0, HEX_ARCO.R ** 2 - (yc - HEX_ARCO.cy) ** 2));
@@ -132,6 +133,7 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow 
     if (estilo === 'faixas_logo') { const g = 0.1, h = Math.min(0.62, (4.95 - g * (n - 1)) / n); return L(i => ({ x: 5.4, y: 1.55 + i * (h + g), w: 7.3, h })); }
     if (estilo === 'hexagonos_arco') return L(i => { const p = hexPos(i, n); return { x: p.xc + p.d / 2 + 0.3, y: p.yc - (p.h - 0.1) / 2, w: 12.6 - (p.xc + p.d / 2 + 0.3), h: p.h - 0.1 }; });
     if (estilo === 'trilha_pergunta') { const g = Math.min(0.62, 4.9 / n); return L(i => ({ x: 1.25, y: 1.5 + i * g, w: 4.6, h: Math.min(0.5, g - 0.06) })); }
+    if (estilo === 'objeto_marcadores') { const g = Math.min(0.7, 4.95 / n); return L(i => ({ x: 1.55, y: 1.5 + i * g, w: 6.5, h: Math.min(0.55, g - 0.06) })); }
     const g = Math.min(1.6, 4.9 / n);   // losangos_celular
     return L(i => ({ x: 1.95, y: 1.55 + i * g, w: 5.9, h: g - 0.12 }));
   }
@@ -170,7 +172,9 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow 
     const n = itens.length, yc = (rects[0].y + rects[n - 1].y + rects[n - 1].h) / 2, xTip = 2.9, incl = 0.5;
     const ini = String(o.marca || cfg.marca || cfg.empresa || '').trim().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 1).toUpperCase();
     // forma da marca: inicial gigante em contorno fino (sem preenchimento); sem nome da marca, duas faixas inclinadas genericas
-    if (ini) letraContorno(s, ini, { x: -0.2, y: 1.0, w: 5.2, h: 5.6 });
+    const silh = sil && sil.resolver(o.silhueta || cfg.silhueta);   // objeto do setor tem prioridade sobre a inicial
+    if (silh) sil.desenhar(s, silh, { x: 0.3, y: 1.3, w: 4.7, h: 5.0 }, { cor: P.accent, linha: 3, preenche: true, transpPreenche: 90, nome: 'SUM_marca_forma' });
+    else if (ini) letraContorno(s, ini, { x: -0.2, y: 1.0, w: 5.2, h: 5.6 });
     else { formaL(s, [P2(0.4, 1.7), P2(3.9, 1.7), P2(0.4, 4.6)], { cor: P.accent, transp: 55, linha: 1, corLinha: P.accent }); formaL(s, [P2(0.4, 5.0), P2(2.2, 3.7), P2(3.3, 6.5), P2(0.4, 6.5)], { linha: 1, corLinha: P.accent }); }
     itens.forEach((it, i) => {
       const r = rects[i], on = ativo == null || ativo === i, ex = (y) => xTip + incl * Math.abs(y - yc), cor = on ? P.fg : P.apagado;
@@ -249,8 +253,22 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow 
       s.addShape(S.LINE, { x: sx, y: yy + 0.34, w: sw, h: 0, line: { color: on ? COR.dom : 'BFBFBF', width: on ? 1.75 : 1 }, objectName: 'SUM_mock_fio' });
     });
   }
+  function objetoMarcadores(s, itens, ativo, o, rects) {
+    moldura(s, o, { esquerda: true, semFios: true, corTitulo: P.accent });
+    const silh = sil && sil.resolver(o.silhueta || cfg.silhueta);
+    if (!silh) throw new Error('objeto_marcadores: informe "silhueta" (config ou deck.sumario): carrinho, sacola, caixa, garrafa... ou o setor');
+    sil.desenhar(s, silh, { x: 8.3, y: 1.35, w: 4.6, h: 5.0 }, { cor: P.accent, linha: 3, preenche: true, transpPreenche: 92, transpLinha: 25, nome: 'SUM_objeto_grande' });
+    itens.forEach((it, i) => {
+      const r = rects[i], on = ativo == null || ativo === i, cor = on ? P.fg : P.apagado, d = Math.min(0.5, r.h);
+      s.addShape(S.RECTANGLE, { x: 0.75, y: r.y + (r.h - d) / 2, w: d, h: d, fill: { type: 'none' }, line: { type: 'none' }, objectName: 'SUM_marcador' + i });
+      sil.desenhar(s, silh, { x: 0.75, y: r.y + (r.h - d) / 2, w: d, h: d }, { cor: on ? P.accent : P.apagado, linha: on ? 1.75 : 1, preenche: on, transpPreenche: 0, nome: 'SUM_marcador_obj' });
+      const t = `${ROM[i]}. ${it.titulo}`;
+      if (linhas(t, 16, r.w, on) > 1) throw new Error('Reescreva o item do sumario para caber a 16pt: ' + it.titulo);
+      T(s, t, { x: r.x, y: r.y, w: r.w, h: r.h, fontSize: 16, bold: on, color: cor, objectName: 'SUM_item_titulo' });
+    });
+  }
   const larguraTexto = (t, pt, b) => formas.larguraTexto(String(t), pt, b);
-  const DESENHO = { faixas_logo: faixasLogo, hexagonos_arco: hexagonosArco, trilha_pergunta: trilhaPergunta, losangos_celular: losangosCelular };
+  const DESENHO = { faixas_logo: faixasLogo, hexagonos_arco: hexagonosArco, trilha_pergunta: trilhaPergunta, losangos_celular: losangosCelular, objeto_marcadores: objetoMarcadores };
 
   let identidadeFixa=null;
   function desenhar(s, estilo, itens, ativo, o={}) {

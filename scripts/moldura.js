@@ -784,7 +784,9 @@ module.exports = function (cfg) {
   // capa({ modelo, titulo, subtitulo?, integrantes, creditos?, empresas?, logos?, imagem?, tema?, recomendacao?, ... })
   // A estrutura de cada modelo e copiada dos decks de referencia do usuario (references/capas.md). Sem barra lateral.
   const resolverImagem = (caminho, tema) => { const a = caminho || daBiblioteca(tema); if (!caminho && a) console.log(`imagem da biblioteca para "${tema}": ${path.basename(a)} (confirmar com o usuario)`); return a && fs.existsSync(a) ? a : null; };
-  const CAPAS = require(path.join(AQUI, 'capas.js'))({ pres, COR, F, caber, imagem, resolverImagem, degrades: formas.degrades, tom, mistura, py, temPillow, tmp, nLinhas, contraste, cfgLogos: cfg.logos || {} });
+  const SIL = require(path.join(AQUI, 'silhuetas.js'))(pres);   // objetos do setor da empresa (capa e sumario); cfg.silhueta = 'carrinho' | 'supermercado' | ...
+  if (cfg.silhueta && !SIL.resolver(cfg.silhueta)) throw new Error(`silhueta "${cfg.silhueta}" desconhecida. Objetos: ${SIL.NOMES.join(', ')}`);
+  const CAPAS = require(path.join(AQUI, 'capas.js'))({ pres, COR, F, caber, imagem, resolverImagem, degrades: formas.degrades, tom, mistura, py, temPillow, tmp, nLinhas, contraste, cfgLogos: cfg.logos || {}, sil: SIL, cfgSilhueta: cfg.silhueta });
   function capa(o) {
     const s = pres.addSlide({ masterName: 'Capa' });
     garantirBarra(s);   // a barra e desenhada no 1o slide e movida pelo barra_lateral.py so para os layouts de conteudo
@@ -796,7 +798,7 @@ module.exports = function (cfg) {
   // ---------- sumario / transicao ----------
   // Sumario: um unico modelo, fundo, imagem e identidade no deck; apenas o item ativo muda.
   // Escolher no config estiloSumario. Qualquer override divergente por slide e rejeitado.
-  const SUME = require(path.join(AQUI, 'sumario_cores.js'))({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow });
+  const SUME = require(path.join(AQUI, 'sumario_cores.js'))({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow, sil: SIL });
   const usosSumario = [];
   function escolherEstiloSumario() { return SORT.estiloSumario; }
   let visualSumario = null;

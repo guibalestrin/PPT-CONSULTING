@@ -51,7 +51,7 @@ Objetivo: deck em portugues que quem olha de fora nao percebe que foi feito por 
 O usuario ja decidiu estes itens; nao pergunte, aplique e registre no resumo do briefing.
 
 - **Publico:** sempre o cliente que contratou a consultoria. **Objetivo:** encontrar melhorias ou resolver os problemas da empresa dentro do escopo; a pergunta do cliente ("Fomos contratados para responder...") e deduzida pela skill, nao perguntada.
-- **Modelo de capa:** escolha sozinho pelo contexto (`references/capas.md`) e diga qual no resumo; o que faltar vira placeholder.
+- **Capa e sumário criativos (`references/conceito_marca.md`):** antes do resumo, pesquise a empresa, ache o **elemento dela** (objeto do setor, embalagem, foto, forma da logo, app) e rode `node propor_visual.js --silhueta <objeto|setor> --elementos <foto,fotos,objetoPng> --itens <n>`: ele **sorteia** capa e sumário entre os modelos que esse elemento comporta e grava em `estilo_deck.json`. Diga no resumo qual capa, qual sumário e qual elemento da marca (arquivo, pesquisa ou placeholder). `Quero outra opção` = `--refazer capa|sumario|tudo`. No build, `silhueta` no config e `deck.capa` sem `modelo`. Nunca desenhar logo ou produto de outra marca.
 - **Fluxo do escopo (obrigatorio):** todo escopo pedido traz o proprio fluxo de apresentacao, definido em `scripts/fluxos.js`. Ele e (1) a faixa de etapas **abaixo da linha divisoria de todo slide de conteudo** (etapa atual em negrito na dominante) e (2) pelo menos 1 slide de conteudo por escopo, senao o build falha; etapa sem slide gera aviso (diga na entrega, no chat). **Nenhum `.md` e entregue** (pedido do usuario, 16/11/2026); `fluxoMd: true` no config so se o usuario pedir o arquivo. Configure com `escopos: ['marketing']` (um ou mais, na ordem mercadologico, operacional, marketing, financeiro; o build recusa config sem `escopos`). Com varios escopos o rodape de cada slide mostra so o fluxo do escopo daquele slide. Etapas extras pedidas pelo usuario entram em `secoes` (as padrao precisam estar todas, na ordem). O usuario edita a ordem depois no PowerPoint.
 
 | Escopo | Fluxo (faixa abaixo da linha) | O que cada etapa contem |
@@ -257,7 +257,7 @@ deck.revelar('Marketing Mix', 3, (s, e, ctx) => {
 deck.finalizar('deck.pptx', estilosGraficos);
 ```
 
-Passos: (1) `preparar.ps1` (protocolo, passo 1) ou `cp <skill>/scripts/* . && cp -r <skill>/assets/imagens . && cp -r <skill>/assets/referencias ./referencias` (`moldura.js` carrega sozinho os modulos `formas.js`, `exhibits.js`, `elementos.js`, `composicoes.js`, `capas.js`, `sumarios.js`, `sumario_cores.js`, `sorteio.js`, `proibicoes.js`, `icone.js` e chama `tema.py`, `barra_lateral.py`, `marcadores.py` e `graficos.py` no `finalizar`; por isso todos precisam estar na mesma pasta); (2) leia `references/gramatica.md` e `references/exhibits.md`, depois `capas.md`, `aprendizados.md`, `arranjos.md`, `organizacao.md`, `referencias.md`, `formas.md` (e `graficos.md` se houver cascata/dispersao); (3) escreva `build_deck.js` (modelo: `assets/exemplo_build_deck.js`, `assets/exemplo_sumarios_popups.js`); (4) `node build_deck.js` e `<python> qa_deck.py deck.pptx --fonte "<fonte>"` (`<python>` esta em `ambiente.json`; no Windows costuma ser `py`); (5) `renderizar.ps1 -Deck deck.pptx` e confira a folha e cada slide.
+Passos: (1) `preparar.ps1` (protocolo, passo 1) ou `cp <skill>/scripts/* . && cp -r <skill>/assets/imagens . && cp -r <skill>/assets/referencias ./referencias` (`moldura.js` carrega sozinho os modulos `formas.js`, `exhibits.js`, `elementos.js`, `composicoes.js`, `capas.js`, `sumarios.js`, `sumario_cores.js`, `sorteio.js`, `proibicoes.js`, `icone.js`, `silhuetas.js` e chama `tema.py`, `barra_lateral.py`, `marcadores.py` e `graficos.py` no `finalizar`; por isso todos precisam estar na mesma pasta); (2) leia `references/gramatica.md` e `references/exhibits.md`, depois `capas.md`, `aprendizados.md`, `arranjos.md`, `organizacao.md`, `referencias.md`, `formas.md` (e `graficos.md` se houver cascata/dispersao); (3) escreva `build_deck.js` (modelo: `assets/exemplo_build_deck.js`, `assets/exemplo_sumarios_popups.js`); (4) `node build_deck.js` e `<python> qa_deck.py deck.pptx --fonte "<fonte>"` (`<python>` esta em `ambiente.json`; no Windows costuma ser `py`); (5) `renderizar.ps1 -Deck deck.pptx` e confira a folha e cada slide.
 
 Composicoes prontas (`deck.composicoes`): `overviewEmpresa`, `financeiro` e `caixaLateral` (caixa a esquerda com a tese + 2 a 4 elementos ligados a direita; `assets/exemplo_build_deck.js`, slide 3b). Divisoes: `'1'`, `'2c'`, `'3c'`, `'4c'`, `'2f'`, `'3f'`, `'2x2'`, `'1+2'`, `'2+1'`, `'3+1'`, `'L'`, `'Linv'`, `'Lc'`. Exhibits (`exhibits.js`): `grafico`, `colcheteCagr`, `nota`, `elipse`, `tabela`, `sensibilidade`, `premissas`, `footballField`, `matrizRisco`, `equacao`, `linhaTempo`, `cenarios`, `cadeia`, `citacao`, `recorte`, `painel`, `listaPinos`, `numeroTexto`... Outras: `deck.livre`, `deck.imagem`, `deck.painel`, `deck.grade`, `deck.unidade`, `deck.cabecalho`, `deck.tom`, `deck.COR`, `deck.pres`. Funcoes vetadas (`proibicoes.js`) lancam erro.
 
@@ -281,12 +281,15 @@ Requisitos: node + `pptxgenjs`; Python com `lxml` (o `moldura.js` acha sozinho e
 | `references/vetos_e_recomendacao.md` | Tabela, conector, icone, sumario, slide final de recomendacoes |
 | `references/imagens_tipografia.md` | Imagens, icones, placeholders; fontes aprovadas (Gill Sans MT, Dubai, Montserrat; proibidas Calibri, Arial, Aptos, Georgia...) |
 | `references/capas.md`, `barra.md` | Capa; barra lateral (so se o usuario nomear) |
+| `references/conceito_marca.md` | Conceito visual: elemento da empresa, tabela setor > objeto > capa e sumario, regras do sorteio |
 | `references/aprendizados.md` | Sempre: preferencias consolidadas e feedback |
 | `scripts/fluxos.js` | Fonte unica do fluxo de cada escopo (etapas do rodape e, so com `fluxoMd: true`, o arquivo `fluxo_<escopo>.md`); edite aqui para mudar o fluxo |
 | `scripts/preparar.ps1` | Inicio de todo deck (Windows): copia scripts e referencias, acha o Python, confere pptxgenjs e fontes, grava `ambiente.json` |
 | `scripts/renderizar.ps1` | Previa de cada slide (`-Slides N`) ou do deck: PNG por slide + `folha.png` (PowerPoint; fallback LibreOffice) |
 | `scripts/feedback.py` | Fluxo slide a slide: registra aprovado/ajustar com as palavras do usuario em `feedback_slides.jsonl`; `--resumo` mostra o andamento |
 | `scripts/formas_novas.js` | Formas da rodada 3; carregado sozinho como `deck.N` (nao ler para usar) |
+| `scripts/propor_visual.js` | Antes do resumo: sorteia capa e sumario compativeis com os elementos da empresa e grava em `estilo_deck.json` (`--refazer`, `--evitar`) |
+| `scripts/silhuetas.js` | 16 objetos de setor desenhados com formas nativas (carrinho, caixa, garrafa...) para capa e sumario |
 | `scripts/sortear_referencias.py` | Protocolo passo 2: sorteia as referencias a abrir, lendo as pastas de `referencias/` (`--inicial`, `--tipo`, `--estrutura`, `--sumario`) |
 | `scripts/extrair_referencias.py` | So quando o usuario anexar um deck novo de referencia (PDF ou PPTX): gera folhas de contato e inventario |
 | `scripts/baixar_imagem.py` + `assets/imagens/LEIA-ME.md` | Imagem da web ou cadastro manual no `catalogo.json` (ver `imagens_tipografia.md`) |
@@ -298,6 +301,7 @@ Requisitos: node + `pptxgenjs`; Python com `lxml` (o `moldura.js` acha sozinho e
 
 - [ ] Um só modelo e fundo de sumário; itens sem interseção e alinhados, inclusive no maior fluxo.
 - [ ] Paleta 60/30/10 mantida em capa, conteúdo e transições.
+- [ ] Capa e sumário usam o elemento da empresa analisada (`conceito_marca.md`), vieram do sorteio (`propor_visual.js`) e o resumo disse qual e de onde vem; nenhum logo ou produto de outra marca foi desenhado.
 - [ ] Títulos/subtítulos padronizados; textos longos reescritos, sem redução automática.
 - [ ] Quatro contraexemplos Huawei abertos e comparados; nenhum reproduzido.
 

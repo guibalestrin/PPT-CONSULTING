@@ -3,7 +3,7 @@
 // Cada modelo recebe o slide (layout 'Capa', em branco) e as opcoes de deck.capa({ modelo, ... }).
 //
 // Opcoes comuns:
-//   modelo:      'foto_lateral' | 'circulo' | 'ondas_foto' | 'recomendacao' | 'radial' | 'fita_padrao' | 'triangulos_fotos' | 'poligonos_centro' | 'foto_onda_base' | 'produto_onda'   (obrigatorio)
+//   modelo:      'foto_lateral' | 'circulo' | 'ondas_foto' | 'recomendacao' | 'radial' | 'fita_padrao' | 'triangulos_fotos' | 'poligonos_centro' | 'foto_onda_base' | 'produto_onda' | 'objeto_marca'   (omitido = sorteio)
 //   titulo:      nome do trabalho ("Investment Thesis", "Crédito 2024.1", "Análise mercadológica")
 //   subtitulo:   complemento ("Apresentação Final", "AgroInsper", empresa analisada)
 //   integrantes: [nomes]
@@ -14,9 +14,11 @@
 //   imagem, tema, imagemDescricao, foco: foto do caso (foto_lateral, ondas_foto, recomendacao)
 //   logosNegativos: true (padrao nos modelos escuros): logo PNG escuro com fundo transparente vira branco
 //   fita_padrao: marca, fitaDetalhe, monograma | triangulos_fotos: fotos[3], fotosPB | produto_onda: objeto (PNG recortado), objetoDescricao
+//   silhueta: objeto do setor (objeto_marca; padrao de fita_padrao) | modelo omitido = sorteio entre os que o caso comporta
 //   recomendacao: { ticker, data, recomendacao, precoAlvo, upside, rotulos? }   (so modelo 'recomendacao')
 module.exports = function (ctx) {
-  const { pres, COR, F, caber, imagem, resolverImagem, degrades, tom, mistura, py, temPillow, tmp, nLinhas } = ctx;
+  const { pres, COR, F, caber, imagem, resolverImagem, degrades, tom, mistura, py, temPillow, tmp, nLinhas, sil } = ctx;
+  const SORT = require('./sorteio.js');
   const W = 13.333, H = 7.5, S = pres.shapes;
   let nGr = 0, nNeg = 0;
 
@@ -329,7 +331,9 @@ module.exports = function (ctx) {
     const mono = o.monograma || (o.integrantes || []).map(n => String(n)[0]).join('').slice(0, 2) || '◆';
     ret(s, 0, 0, W, H, d, { objectName: grad([[0, tom(d, 0.05), 100], [100, tom(d, -0.04), 100]], 90) });
     const cl = tom(d, 0.2);
-    for (let r = 0; r < 6; r++) for (let c = -1; c < 10; c++) txt(s, mono, { x: c * 1.43 + (r % 2 ? 0.7 : 0), y: 0.25 + r * 1.3, w: 1.2, h: 0.9, fontSize: 34, fontFace: 'Georgia', color: cl, align: 'center', transparency: 55, objectName: 'CAPA_padrao' });
+    const silh = sil && !o.monograma ? sil.resolver(o.silhueta || ctx.cfgSilhueta) : null;   // padrao com o objeto do setor em vez do monograma
+    if (silh) sil.padrao(s, silh, { x: 0, y: 0, w: W, h: H }, { cor: cl, tam: 0.85, transpLinha: 45, linha: 1 });
+    else for (let r = 0; r < 6; r++) for (let c = -1; c < 10; c++) txt(s, mono, { x: c * 1.43 + (r % 2 ? 0.7 : 0), y: 0.25 + r * 1.3, w: 1.2, h: 0.9, fontSize: 34, fontFace: 'Georgia', color: cl, align: 'center', transparency: 55, objectName: 'CAPA_padrao' });
     const fita = (cx, cy, comp, esp, ang) => {
       s.addShape(S.RECTANGLE, { x: cx - comp / 2, y: cy - esp / 2, w: comp, h: esp, rotate: ang, fill: { color: '0D0D0D' }, line: { type: 'none' }, objectName: 'CAPA_fita' });
       s.addShape(S.RECTANGLE, { x: cx - comp / 2, y: cy - esp / 2 + 0.07, w: comp, h: esp - 0.14, rotate: ang, fill: { color: '0D0D0D', transparency: 100 }, line: { color: 'FFFFFF', width: 0.75, dashType: 'dash', transparency: 25 }, objectName: 'CAPA_fita_pesponto' });
@@ -431,10 +435,47 @@ module.exports = function (ctx) {
     if (e.logo) logo(s, e.logo, { x: 0.3, y: 0.15, w: 1.6, h: 0.5 }, { negativo: false, alinhar: 'esquerda', nome: 'empresa' });
   }
 
+  // 11. objeto_marca (conceito de 23/11/2026: "capa como embalagem"; ref. Hermes). ELEMENTO DA MARCA: o OBJETO DO SETOR da empresa
+  // (carrinho, caixa de presente, garrafa... ver silhuetas.js) como heroi num medalhao, com o mesmo objeto em padrao tom sobre tom no fundo.
+  function objetoMarca(s, o) {
+    const neg = o.logosNegativos !== false, d = COR.dom, e = empresasDe(o)[0], nome = sil && sil.resolver(o.silhueta || ctx.cfgSilhueta);
+    if (!nome) throw new Error('objeto_marca: informe "silhueta" (carrinho, sacola, caixa, garrafa, cartao, predio, casa, folha, gota, raio, engrenagem, caminhao, aviao, cruz, celular, livro) ou o setor (supermercado, luxo, vinho...)');
+    ret(s, 0, 0, W, H, d, { objectName: grad([[0, tom(d, -0.55), 100], [100, d, 100]], 40) });
+    sil.padrao(s, nome, { x: 0, y: 0, w: W, h: H }, { cor: 'FFFFFF', tam: 0.8, transpLinha: 86, linha: 0.75 });
+    s.addShape(S.OVAL, { x: 7.15, y: 0.85, w: 5.7, h: 5.7, fill: { color: tom(d, -0.5) }, line: { color: tom(COR.dest, 0.2), width: 1.25 }, objectName: 'CAPA_medalhao' });
+    s.addShape(S.OVAL, { x: 7.35, y: 1.05, w: 5.3, h: 5.3, fill: { type: 'none' }, line: { color: 'FFFFFF', width: 0.5, transparency: 60 }, objectName: 'CAPA_medalhao_fio' });
+    sil.desenhar(s, nome, { x: 8.0, y: 1.7, w: 4.0, h: 4.0 }, { cor: 'FFFFFF', linha: 3.5, preenche: true, transpPreenche: 88, nome: 'CAPA_objeto' });
+    logo(s, e.logo, { x: 0.7, y: 0.6, w: 3.4, h: 0.85 }, { escuro: true, negativo: neg, alinhar: 'esquerda', rotulo: e.nome, nome: 'empresa' });
+    const wT = 6.0, pt = caberPt(o.titulo, 38, 24, wT, 2, true), lin = nLinhas(limpo(o.titulo), pt, wT, true);
+    txt(s, o.titulo, { x: 0.7, y: 2.45, w: wT, h: lin * pt * 1.25 / 72 + 0.1, fontSize: pt, bold: true, valign: 'top', objectName: 'CAPA_TITULO' });
+    const yS = 2.45 + lin * pt * 1.25 / 72 + 0.25;
+    s.addShape(S.LINE, { x: 0.7, y: yS, w: 1.6, h: 0, line: { color: tom(COR.dest, 0.3), width: 2.5 } });
+    if (o.subtitulo) txt(s, o.subtitulo, { x: 0.7, y: yS + 0.15, w: wT, h: 0.45, fontSize: 18, color: tom(d, 0.8), valign: 'top' });
+    const l = []; if (nomesLinha(o)) l.push(nomesLinha(o)); (o.creditos || []).forEach(c => l.push(c[0] + ': ' + c[1])); if (o.rodape) l.push(o.rodape);
+    if (l.length) txt(s, l.map((t, i) => ({ text: t, options: { breakLine: i < l.length - 1 } })), { x: 0.7, y: 5.6, w: 6.2, h: 1.4, fontSize: 13, valign: 'bottom' });
+    const ap = apresentadorDe(o);
+    logo(s, ap, { x: 11.2, y: 6.75, w: 1.9, h: 0.5 }, { escuro: true, negativo: neg, alinhar: 'direita', rotulo: 'grupo', nome: 'apresentador' });
+  }
+
   const MODELOS = { foto_lateral: fotoLateral, circulo, ondas_foto: ondasFoto, recomendacao: recomendacaoCapa, radial,
-    fita_padrao: fitaPadrao, triangulos_fotos: triangulosFotos, poligonos_centro: poligonosCentro, foto_onda_base: fotoOndaBase, produto_onda: produtoOnda };
+    fita_padrao: fitaPadrao, triangulos_fotos: triangulosFotos, poligonos_centro: poligonosCentro, foto_onda_base: fotoOndaBase, produto_onda: produtoOnda, objeto_marca: objetoMarca };
+  // elementos do caso disponiveis para a capa (decidem quais modelos podem ser sorteados)
+  function elementosDe(o) {
+    const foto = !!resolverImagem(o.imagem, o.tema), fotos = foto || (o.fotos || []).some(f => resolverImagem(f, null));
+    return { foto, fotos, objetoPng: !!resolverImagem(o.objeto, null), recomendacao: !!o.recomendacao, silhueta: !!(sil && sil.resolver(o.silhueta || ctx.cfgSilhueta)) };
+  }
+  // modelo omitido ou 'sorteio': usa o modelo ja sorteado do projeto (estilo_deck.json, gravado por propor_visual.js) ou sorteia agora entre os elegiveis
+  function modeloDoSorteio(o) {
+    const salvo = SORT.lerEstilo().modeloCapa, el = elementosDe(o);
+    if (salvo && MODELOS[salvo]) return salvo;
+    const m = SORT.sortearCapa(el, o.evitar || []);
+    SORT.gravarEstilo({ modeloCapa: m });
+    console.log(`capa sorteada entre ${SORT.capasElegiveis(el).length} modelos elegiveis: ${m}`);
+    return m;
+  }
   function desenhar(s, o) {
-    if (!o || !o.modelo) throw new Error(`deck.capa: informe "modelo" (${Object.keys(MODELOS).join(', ')}). Escolha pelo contexto do caso (references/capas.md).`);
+    if (o && (!o.modelo || o.modelo === 'sorteio')) o = Object.assign({}, o, { modelo: modeloDoSorteio(o) });
+    if (!o || !o.modelo) throw new Error(`deck.capa: informe "modelo" (${Object.keys(MODELOS).join(', ')}) ou omita para sortear. Escolha pelo contexto do caso (references/capas.md).`);
     const f = MODELOS[o.modelo];
     if (!f) throw new Error(`modelo de capa desconhecido: "${o.modelo}". Use: ${Object.keys(MODELOS).join(', ')}`);
     if (!o.titulo) throw new Error('deck.capa: informe "titulo" (nome do trabalho)');
