@@ -51,12 +51,16 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
   // fotoEsquerda (imagem a esquerda, itens em arco a direita: kepl3_p010, ex_sumario), fotoDireita (itens a esquerda),
   // fotoFundo (foto em tela cheia com veu em degrade: mabg_p002) e cheio (sem foto: agrion_p002). A foto nunca termina
   // em corte seco: um degrade com transparencia a dissolve no fundo, e o fundo do lado da foto tem a mesma cor do degrade.
-  const COMPOSICOES = ['fotoEsquerda', 'fotoDireita', 'fotoFundo', 'cheio'];
+  // fotoDireitaFio (APROVADO 23/11/2026, deck Audemars Piguet com circulos: "tava perfeito"): foto recortada na direita a partir de
+  // x 8,55, fio fino vertical na cor dominante, logo da empresa numa faixa escura no pe da foto. Ver assets/referencias/sumario/aprovado_ap_circulos_foto.jpg.
+  // Com pilulas a mesma montagem foi REPROVADA (Bluefit): por isso o sorteio so a combina com circulos.
+  const COMPOSICOES = ['fotoEsquerda', 'fotoDireita', 'fotoDireitaFio', 'fotoFundo', 'cheio'];
   const XF_D = 7.75, XF_E = 5.55, FADE = 2.4;
   function geo(o) {
     const comp = o.foto ? o.composicao : 'cheio', m = o.moldura;
     const topo = m.titulo === 'nenhum' ? 0.75 : 1.44, base = m.logo || m.fios ? 6.5 : 6.9;
     if (comp === 'fotoDireita') return { comp, x0: 0.9, x1: XF_D - 0.45, topo, base };
+    if (comp === 'fotoDireitaFio') return { comp, x0: 0.9, x1: 8.55 - 0.45, topo, base };
     if (comp === 'fotoEsquerda') return { comp, x0: XF_E + 0.25, x1: W - 0.7, topo, base };
     return { comp, x0: 0.9, x1: W - 0.9, topo, base };
   }
@@ -67,6 +71,18 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
   }
   function fundo(s, o, g) {
     if (g.comp === 'cheio') { grad(s, { x: 0, y: 0, w: W, h: H }, 45, [[0, P.a, 100], [100, P.b, 100]], 'sumesc'); return; }
+    if (g.comp === 'fotoDireitaFio') {   // montagem aprovada (AP): recorte limpo com fio, sem degrade
+      const XL = 8.55;
+      grad(s, { x: 0, y: 0, w: W, h: H }, 45, [[0, P.a, 100], [100, P.b, 100]], 'sumesc');
+      s.addImage({ path: o.foto, x: XL, y: 0, w: W - XL, h: H, sizing: { type: 'cover', w: W - XL, h: H }, objectName: 'SUM_foto' });
+      s.addShape(S.RECTANGLE, { x: XL - 0.06, y: 0, w: 0.06, h: H, fill: { color: o.corFio || COR.dom }, line: { type: 'none' }, objectName: 'SUM_fio_lateral' });
+      if (o.logoEmpresa && fs.existsSync(o.logoEmpresa)) {
+        s.addShape(S.RECTANGLE, { x: XL, y: H - 1.25, w: W - XL, h: 1.25, fill: { color: '000000', transparency: 12 }, line: { type: 'none' }, objectName: 'SUM_faixa_logo' });
+        const b = fs.readFileSync(o.logoEmpresa), ar = b.readUInt32BE(16) / b.readUInt32BE(20), lw = Math.min(W - XL - 0.9, 0.8 * ar), lh = lw / ar;
+        s.addImage({ path: o.logoEmpresa, x: XL + (W - XL - lw) / 2, y: H - 0.625 - lh / 2, w: lw, h: lh, objectName: 'SUM_logo_empresa' });
+      }
+      return;
+    }
     if (g.comp === 'fotoFundo') {
       s.addImage({ path: o.foto, x: 0, y: 0, w: W, h: H, sizing: { type: 'cover', w: W, h: H }, objectName: 'SUM_foto' });
       grad(s, { x: 0, y: 0, w: W, h: H }, 0, [[0, P.a, 94], [55, P.a, 82], [100, P.a, 45]], 'sumveu');   // denso onde esta o texto

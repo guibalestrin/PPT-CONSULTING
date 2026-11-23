@@ -20,10 +20,11 @@ const OPCOES = {
   corCabecalho: ['dom', 'escuro'],
 };
 // sumarios de slide cheio, na cor fixa escolhida da paleta do projeto (sumario_cores.js), todos fieis a uma referencia (orizon_p012, agrion_p002, mabg_p002, vivara_p007)
-// VETADOS pelo usuario: 'cartoes' (16/11/2026: colunas altas so com numero e titulo, quase tudo vazio) e 'circulos' (22/11/2026: a
+// 'circulos' VOLTOU em 23/11/2026: o sumario Audemars Piguet em circulos com foto recortada a direita foi aprovado ("tava perfeito").
+// VETADO pelo usuario: 'cartoes' (16/11/2026: colunas altas so com numero e titulo, quase tudo vazio). Historico: 'circulos' foi vetado em 22/11/2026 (a
 // referencia orizon_p012 que deu origem a ele foi reprovada). Nao sao sorteados nem aceitos no config.
-const SUMARIOS = ['pilulas', 'paralelogramos'];
-const SUMARIOS_VETADOS = ['cartoes', 'circulos'];
+const SUMARIOS = ['pilulas', 'paralelogramos', 'circulos'];
+const SUMARIOS_VETADOS = ['cartoes'];
 // Feedback 23/11/2026: a foto do sumario nao fica sempre a direita, e titulo "Sumario", fios em cima/embaixo e logo nao sao obrigatorios.
 // Sorteados uma vez por deck (gravados em estilo_deck.json) e mantidos em todas as transicoes. Sem foto, a composicao vira 'cheio'.
 const COMPOSICOES_SUMARIO = ['fotoEsquerda', 'fotoDireita', 'fotoFundo'];
@@ -65,8 +66,11 @@ module.exports = function sortear(cfg, PROIB, cwd = process.cwd()) {
   r.origem.sumarios = pedido ? 'informado' : (r.estiloSumario === antigo ? 'mantido/migrado' : 'sorteado');
   r.todosSumarios = SUMARIOS;
   const comp = cfg.composicaoSumario;
-  if (comp && !COMPOSICOES_SUMARIO.concat('cheio').includes(comp)) throw new Error('composicaoSumario desconhecida: ' + comp + '. Use: ' + COMPOSICOES_SUMARIO.join(', ') + ', cheio');
-  r.composicaoSumario = comp || (COMPOSICOES_SUMARIO.includes(salvo.composicaoSumario) ? salvo.composicaoSumario : pick(COMPOSICOES_SUMARIO));
+  if (comp && !COMPOSICOES_SUMARIO.concat('cheio', 'fotoDireitaFio').includes(comp)) throw new Error('composicaoSumario desconhecida: ' + comp + '. Use: ' + COMPOSICOES_SUMARIO.join(', ') + ', cheio');
+  // fotoDireitaFio so com circulos (aprovado no AP; com pilulas foi reprovado no Bluefit); com circulos ela tem peso dobrado no sorteio
+  const compValidas = r.estiloSumario === 'circulos' ? COMPOSICOES_SUMARIO.concat('fotoDireitaFio', 'fotoDireitaFio') : COMPOSICOES_SUMARIO;
+  if (comp === 'fotoDireitaFio' && r.estiloSumario !== 'circulos') throw new Error('composicaoSumario fotoDireitaFio so com estiloSumario circulos (com pilulas foi reprovada).');
+  r.composicaoSumario = comp || (compValidas.includes(salvo.composicaoSumario) ? salvo.composicaoSumario : pick(compValidas));
   const ms = salvo.molduraSumario && TITULOS_SUMARIO.includes(salvo.molduraSumario.titulo) ? salvo.molduraSumario : null;
   r.molduraSumario = Object.assign({}, ms || { titulo: pick(TITULOS_SUMARIO), fios: Math.random() < 0.35, logo: Math.random() < 0.5 }, cfg.molduraSumario || {});
   if (!TITULOS_SUMARIO.includes(r.molduraSumario.titulo)) throw new Error('molduraSumario.titulo: ' + TITULOS_SUMARIO.join(', '));

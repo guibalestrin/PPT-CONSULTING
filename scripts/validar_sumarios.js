@@ -21,7 +21,7 @@ for(const style of engine.ESTILOS){
   }
 }
 // composicoes com foto e moldura opcional (23/11/2026): toda combinacao precisa caber sem sobrepor
-for(const style of ['pilulas','paralelogramos'])for(const composicao of engine.COMPOSICOES)
+for(const style of ['pilulas','paralelogramos','circulos'])for(const composicao of engine.COMPOSICOES)
   for(const titulo of ['esquerda','centro','direita','nenhum'])for(const logo of [true,false])for(let n=1;n<=10;n++){
     const g=engine.geo({foto:composicao==='cheio'?null:'x.jpg',composicao,moldura:{titulo,fios:false,logo}});
     const rects=engine.layout(style,n,g);

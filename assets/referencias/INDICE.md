@@ -42,7 +42,7 @@ Escolha a pasta pelo que a MENSAGEM do slide pede, nao pelo assunto do deck de o
 
 ## 3. Sumarios (`sumario/`)
 
-agrion_p002, ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, tech_p004
+agrion_p002, aprovado_ap_circulos_foto (aprovado pelo usuario em 23/11/2026: circulos + foto recortada a direita), ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, tech_p004
 
 Detalhe de pop-up, faixa-pergunta e indice: `references/sumarios_popups.md`.
 
