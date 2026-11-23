@@ -4,7 +4,7 @@
 
 Leia **sempre** antes de montar a capa. Regra do usuario (2026-11-11): **na capa a estrutura e copiada literalmente**, porque ja funciona. So se adaptam imagens, logos, cores (paleta do deck) e textos do caso. Nao invente capa nova, nao misture modelos, nao "melhore" a composicao. A capa **nao tem barra lateral** nem moldura.
 
-Cada modelo esta em `scripts/capas.js`; as imagens de referencia ficam em `assets/capas/ref_<modelo>.jpg` (abra com Read para ver o original antes de montar). As marcas que aparecem nas referencias sao so documentacao: nunca entram num deck.
+Sao 10 modelos, todos em `scripts/capas.js`; as imagens de referencia ficam em `assets/capas/ref_<modelo>.jpg` (abra com Read para ver o original antes de montar). As marcas que aparecem nas referencias sao so documentacao: nunca entram num deck.
 
 ```javascript
 deck.capa({
@@ -30,6 +30,11 @@ deck.capa({
 | `ondas_foto` | Bunge & Kepler Weber, *M&A AgroInsper* | Duas empresas (M&A, parceria, comparacao) ou ativo fisico grande (silo, porto, planta); muitos creditos (parceria, coordenacao, trainees) | foto do ativo (fica escurecida); 1 ou 2 logos |
 | `recomendacao` | Vibra, *CFA Research Challenge* | Relatorio de equity com recomendacao (compra/venda), preco-alvo e upside; fundo branco | ticker, data, recomendacao, preco-alvo, upside; foto de produto **recortada em PNG sem fundo** |
 | `radial` | Agrion, *AgroInsper Credito* | Sem foto; credito, consultoria, apresentacao final; visual mais tecnologico | logo da empresa e do grupo (brancas); opcional logo de parceiro |
+| `fita_padrao` | Hermes, *LTS Challenge* (AF Capital) | Marca de luxo/varejo com identidade grafica forte (fita, estampa, monograma); fundo na cor da marca | logo da empresa (branca); `marca` (texto da fita); `monograma` (iniciais do grupo) |
+| `triangulos_fotos` | Vivara, *CFA Research Challenge* | Marca com produto fotografavel (joia, cosmetico, moda, alimento); logo da empresa grande, sem foto unica forte | ate 3 fotos do produto/ambiente (`fotos`, P&B por padrao); logo da empresa; logo do organizador |
+| `poligonos_centro` | 3R Petroleum, *Final Analysis* | Sem foto nem produto; marca so por logo; relatorio final, 1 ou 2 logos (empresa e grupo) | logo da empresa e do grupo (brancas) |
+| `foto_onda_base` | Mateus, *Insper Asset* | A empresa tem fachada, loja, planta ou ativo fisico reconhecivel; foto horizontal forte | foto da fachada/ativo em tela cheia; logo da empresa (branca) |
+| `produto_onda` | Cimed, *Private Equity Thesis* | Produto/embalagem icone da marca (medicamento, bebida, higiene) e uma foto aerea ou da fabrica ao fundo | `objeto` em PNG recortado sem fundo; `imagem` de fundo (fica esmaecida) |
 
 Varie entre decks quando o contexto permitir mais de um modelo (preferencia do usuario: variacao entre decks, nao 100% diferente). Diga na entrega qual modelo foi usado e por que, em uma linha, para o usuario poder pedir outro. Se o modelo exige algo que nao veio (foto, ticker), use placeholder/`[DADO: ...]` e liste na pendencia; nao troque de modelo so para esconder a lacuna sem avisar.
 
@@ -45,6 +50,34 @@ Varie entre decks quando o contexto permitir mais de um modelo (preferencia do u
 
 **`radial`**: fundo em degrade horizontal do grafite para a dominante escurecida; leques de tracos finos (como onda de audio) na cor de destaque clara: um grande envolvendo o logo da empresa e tres nos cantos. Coluna esquerda centralizada: logo de quem apresenta, fio branco, `titulo` (negrito, 22pt, caixa alta curta funciona melhor) e `subtitulo`. Logo grande da empresa no centro do leque. Canto inferior esquerdo: nomes dos `creditos` em negrito e integrantes em regular, um por linha. Logo de parceiro no inferior direito.
 
+**Modelos 6 a 10 (23/11/2026).** Anatomia, em polegadas medidas na referencia (`assets/capas/ref_*.png`):
+
+**`fita_padrao`**: fundo chapado na cor dominante com **monograma** repetido em tom sobre tom (grade escalonada, linhas alternadas deslocadas). Duas **fitas pretas** com pesponto tracejado branco e o nome da marca repetido: uma quase horizontal descendo levemente (3,6 graus) e outra cruzando em -22,5 graus no canto superior esquerdo. **Onda translucida** branca em duas camadas da base-esquerda ao canto superior direito. Tudo alinhado a direita: logo da empresa (y ~4,5), linha do evento com a 1a palavra em negrito (20pt), `titulo` grande (30pt, regular), integrantes e data em 11pt na base.
+
+**`triangulos_fotos`**: fundo grafite com faixas duplas finas em cor de destaque no topo e na base e painel cinza no meio. A direita, **3 janelas triangulares** com fotos P&B e contorno fino de destaque. Esquerda: logo da empresa grande, fio de destaque, logo do organizador + logo do grupo e integrantes em 2 colunas (serifada).
+
+**`poligonos_centro`**: degrade vertical (escuro -> dominante clara) com poligonos translucidos de contorno fino nos cantos superior esquerdo e inferior direito. `titulo | subtitulo` centralizado em negrito, **logo da empresa | fio vertical | logo do grupo** logo abaixo, integrantes e head no canto inferior esquerdo (16pt).
+
+**`foto_onda_base`**: foto em tela cheia com degrade da cor escura no topo; **onda** na cor dominante cobrindo a base, com cunha escura a direita. Esquerda da onda: `titulo` (24pt negrito), `subtitulo` (18pt), integrantes (12pt). Logo da empresa em branco no canto inferior direito; logo de parceiro pequeno no topo direito.
+
+**`produto_onda`**: foto aerea/da fachada esmaecida ao fundo (veu branco + tinta da marca). **Objeto recortado** grande a esquerda sobre uma mancha na cor dominante; faixa grafite curva na base com `titulo` em italico branco; mancha dominante no canto inferior direito com integrantes alinhados a direita; cunha grafite no canto superior direito com o logo do grupo.
+
+## Elemento da marca (regra para TODOS os modelos)
+
+Toda capa de referencia tem **uma peca que e da marca dela** (e so dela). Na capa nova essa peca precisa existir **e ser da empresa do caso**; copiar a estrutura sem trocar a peca e o erro mais comum. Antes de escolher o modelo, defina qual e o elemento da marca do caso e se ele existe (arquivo ou possibilidade de montar):
+
+| Modelo | Elemento da marca na referencia | Equivalente no caso | Se nao houver |
+|---|---|---|---|
+| `fita_padrao` | fita com "HERMES | PARIS" + monograma AF | fita/faixa com o NOME da empresa analisada (`marca`, `fitaDetalhe` = cidade ou segmento); monograma = iniciais do grupo que apresenta | nome da empresa na fita ja basta; nao copie o cavalinho |
+| `triangulos_fotos` | fotos de joias e vitrine | fotos do produto, da loja ou do cliente da empresa do caso | trocar de modelo (`poligonos_centro`/`circulo`) ou placeholder `[IMAGEM: ...]` x3 |
+| `poligonos_centro` | lockup de logos 3R + grupo | logo da empresa + logo do grupo | 1 logo so: centralizar sozinho e avisar |
+| `foto_onda_base` | render da fachada Mateus | foto da fachada, loja, planta ou ativo da empresa | `foto_lateral` com foto neutra ou placeholder |
+| `produto_onda` | caixa do remedio Cimed + foto aerea da fabrica | embalagem/produto recortado + foto da operacao | sem objeto recortado, nao use este modelo |
+| `foto_lateral` / `ondas_foto` | cena da operacao / ativo fisico | foto da operacao ou ativo do caso | |
+| `recomendacao` / `circulo` / `radial` | placa BR / logo Nu / logo Agrion | objeto ou logo do caso | |
+
+No resumo do briefing, diga em uma linha qual e o elemento da marca da capa e de onde vem (arquivo, pesquisa ou placeholder). **Varie entre decks**: ao escolher, se mais de um modelo encaixa, prefira o que nao foi usado no deck anterior do usuario (ver `feedback_slides.jsonl`/historico) em vez de repetir o primeiro da tabela.
+
 ## O que e estrutura (copiar) e o que e do caso (trocar)
 
 Copiar = posicoes, proporcoes, ondas, circulo, leques, faixas, hierarquia de textos, tipo de elemento em cada lugar. **Trocar = todo elemento que carrega o contexto da referencia.** Nada da referencia vai para o deck: nem marca, nem foto, nem texto, nem o objeto que identifica o negocio dela.
@@ -56,6 +89,11 @@ Copiar = posicoes, proporcoes, ondas, circulo, leques, faixas, hierarquia de tex
 | `ondas_foto` | faixas onduladas com fios, "A & B" no topo, creditos na base | foto do ativo do caso (nao silos), 1 ou 2 logos, parceiro, coordenacao, trainees |
 | `recomendacao` | logo do organizador, ticker, recomendacao, preco-alvo/upside, objeto em pe sobre o triangulo, faixa de rodape | **o objeto em pe e o elemento visual do negocio do caso** (embalagem, produto, equipamento, fachada recortada, mascote da marca): a placa da BR so faz sentido para a Vibra. Cor do triangulo e do rodape = paleta do caso. Logo do organizador, ticker, data, valores |
 | `radial` | degrade grafite, leques de tracos, coluna esquerda, logo grande no centro | logos, titulo, nomes; cor dos leques e do degrade vem da paleta |
+| `fita_padrao` | duas fitas pretas cruzadas, monograma em grade, onda translucida, bloco de texto a direita | texto da fita (marca do caso), monograma, logo da empresa, titulo, nomes, cor de fundo |
+| `triangulos_fotos` | faixas duplas, painel cinza, 3 janelas triangulares, logo grande a esquerda | as 3 fotos (produto/ambiente do caso), logos, nomes; cores de destaque vem da paleta |
+| `poligonos_centro` | degrade vertical, poligonos de contorno fino, titulo centralizado, lockup de logos | logos, titulo, nomes; cores do degrade vem da paleta |
+| `foto_onda_base` | foto tela cheia, degrade no topo, onda na base com texto, logo no canto | foto do caso, logos, titulo, nomes; cor da onda vem da paleta |
+| `produto_onda` | foto esmaecida, objeto recortado a esquerda, faixa grafite com titulo, manchas amarelas | objeto recortado e foto de fundo do caso, logos, nomes; cor das manchas = dominante |
 
 **Elemento visual sem equivalente no caso.** Em `recomendacao`, sem um objeto recortado que represente a empresa, nao force: use outro modelo (`circulo` ou `radial` se so ha logo; `foto_lateral` se ha foto) e avise. Se o usuario ainda vai mandar o arquivo, deixe o placeholder descrito com o que serve naquele lugar ("embalagem do produto em PNG sem fundo"), nunca a imagem da referencia.
 

@@ -3,7 +3,7 @@
 // Cada modelo recebe o slide (layout 'Capa', em branco) e as opcoes de deck.capa({ modelo, ... }).
 //
 // Opcoes comuns:
-//   modelo:      'foto_lateral' | 'circulo' | 'ondas_foto' | 'recomendacao' | 'radial'   (obrigatorio; escolha pelo contexto)
+//   modelo:      'foto_lateral' | 'circulo' | 'ondas_foto' | 'recomendacao' | 'radial' | 'fita_padrao' | 'triangulos_fotos' | 'poligonos_centro' | 'foto_onda_base' | 'produto_onda'   (obrigatorio)
 //   titulo:      nome do trabalho ("Investment Thesis", "Crédito 2024.1", "Análise mercadológica")
 //   subtitulo:   complemento ("Apresentação Final", "AgroInsper", empresa analisada)
 //   integrantes: [nomes]
@@ -13,6 +13,7 @@
 //   logos:       { apresentador?, parceiro? }  padrao: cfg.logos.apresentador / null
 //   imagem, tema, imagemDescricao, foco: foto do caso (foto_lateral, ondas_foto, recomendacao)
 //   logosNegativos: true (padrao nos modelos escuros): logo PNG escuro com fundo transparente vira branco
+//   fita_padrao: marca, fitaDetalhe, monograma | triangulos_fotos: fotos[3], fotosPB | produto_onda: objeto (PNG recortado), objetoDescricao
 //   recomendacao: { ticker, data, recomendacao, precoAlvo, upside, rotulos? }   (so modelo 'recomendacao')
 module.exports = function (ctx) {
   const { pres, COR, F, caber, imagem, resolverImagem, degrades, tom, mistura, py, temPillow, tmp, nLinhas } = ctx;
@@ -291,7 +292,147 @@ module.exports = function (ctx) {
     if (par) logo(s, par, { x: 10.85, y: 6.75, w: 2.3, h: 0.5 }, { escuro: true, negativo: neg, alinhar: 'direita', nome: 'parceiro' });
   }
 
-  const MODELOS = { foto_lateral: fotoLateral, circulo, ondas_foto: ondasFoto, recomendacao: recomendacaoCapa, radial };
+
+  // =====================================================================
+  // MODELOS 6 a 10 (referencias de 23/11/2026). Cada um tem um ELEMENTO DA MARCA como peca central (slot `elemento`):
+  // o que carrega o contexto da referencia e DEVE ser trocado pelo equivalente do caso (ver references/capas.md, "Elemento da marca").
+  // Medidas: px da referencia (1037 de largura) x k = polegadas.
+  // =====================================================================
+  const k = W / 1037, px = (x, y) => P(x * k, y * k), pxs = (a) => a.map(([x, y]) => px(x, y));
+  const GRAFITE = '3B3838';
+  // foto recortada num poligono (pontos em polegadas do slide): Pillow gera PNG transparente no formato do poligono
+  const POLI = 'import sys, json\nfrom PIL import Image, ImageDraw\nsrc, dst, bw, bh, pts, fx, fy, pb = sys.argv[1], sys.argv[2], float(sys.argv[3]), float(sys.argv[4]), json.loads(sys.argv[5]), float(sys.argv[6]), float(sys.argv[7]), sys.argv[8]\n' +
+    'R = 200\nim = Image.open(src).convert("RGB")\nif pb == "1":\n    im = im.convert("L").convert("RGB")\nW, H = max(1, int(bw * R)), max(1, int(bh * R))\nsc = max(W / im.width, H / im.height)\nim = im.resize((max(W, int(im.width * sc)), max(H, int(im.height * sc))))\n' +
+    'x0 = int((im.width - W) * fx); y0 = int((im.height - H) * fy)\nim = im.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA")\nm = Image.new("L", (W, H), 0)\nImageDraw.Draw(m).polygon([(x * R, y * R) for x, y in pts], fill=255)\nim.putalpha(m)\nim.save(dst)\nprint(dst)';
+  let nPoli = 0;
+  function fotoPoli(s, arq, pts, o = {}) {
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y), bx = Math.min(...xs), by = Math.min(...ys), bw = Math.max(...xs) - bx, bh = Math.max(...ys) - by;
+    const rel = pts.map(p => [p.x - bx, p.y - by]);
+    if (arq && temPillow && require('fs').existsSync(arq)) {
+      const dst = require('path').join(tmp(), 'poli' + (++nPoli) + '.png');
+      const r = py(POLI, arq, dst, String(bw), String(bh), JSON.stringify(rel), String((o.foco || [0.5, 0.5])[0]), String((o.foco || [0.5, 0.5])[1]), o.pb ? '1' : '0');
+      s.addImage({ path: r, x: bx, y: by, w: bw, h: bh, objectName: 'IMG_capa_' + (o.nome || 'poli') });
+      return true;
+    }
+    if (arq && !temPillow) alertas.push('sem Pillow: foto em formato de triangulo virou placeholder');
+    forma(s, pts, { cor: o.fundoPh || '7F7F7F', nome: 'PH_capa_foto_' + (o.nome || 'poli'), linha: 0.75, corLinha: 'FFFFFF', transpLinha: 40 });
+    txt(s, `[IMAGEM: ${o.descricao || 'foto do produto ou do ambiente da marca'}]`, { x: bx + bw * 0.2, y: by + bh * 0.4, w: bw * 0.6, h: 0.6, fontSize: 9.5, align: 'center', color: 'FFFFFF' });
+    return false;
+  }
+  const nomesLinha = (o) => (o.integrantes || []).join(' | ');
+  const primeiroNegrito = (t, base) => { const m = String(t).match(/^(\S+)(\s.*)?$/); return m ? [{ text: m[1], options: Object.assign({}, base, { bold: true }) }, { text: m[2] || '', options: Object.assign({}, base) }] : [{ text: t, options: base }]; };
+
+  // 6. fita_padrao (ref: Hermes, AF Capital). ELEMENTO DA MARCA: fitas pretas cruzadas com o nome da marca + padrao de monograma.
+  function fitaPadrao(s, o) {
+    const neg = o.logosNegativos !== false, d = COR.dom, e = empresasDe(o)[0];
+    const marca = String(o.marca || e.nome || 'MARCA').toUpperCase(), det = o.fitaDetalhe ? '  |  ' + String(o.fitaDetalhe).toUpperCase() : '';
+    const mono = o.monograma || (o.integrantes || []).map(n => String(n)[0]).join('').slice(0, 2) || '◆';
+    ret(s, 0, 0, W, H, d, { objectName: grad([[0, tom(d, 0.05), 100], [100, tom(d, -0.04), 100]], 90) });
+    const cl = tom(d, 0.2);
+    for (let r = 0; r < 6; r++) for (let c = -1; c < 10; c++) txt(s, mono, { x: c * 1.43 + (r % 2 ? 0.7 : 0), y: 0.25 + r * 1.3, w: 1.2, h: 0.9, fontSize: 34, fontFace: 'Georgia', color: cl, align: 'center', transparency: 55, objectName: 'CAPA_padrao' });
+    const fita = (cx, cy, comp, esp, ang) => {
+      s.addShape(S.RECTANGLE, { x: cx - comp / 2, y: cy - esp / 2, w: comp, h: esp, rotate: ang, fill: { color: '0D0D0D' }, line: { type: 'none' }, objectName: 'CAPA_fita' });
+      s.addShape(S.RECTANGLE, { x: cx - comp / 2, y: cy - esp / 2 + 0.07, w: comp, h: esp - 0.14, rotate: ang, fill: { color: '0D0D0D', transparency: 100 }, line: { color: 'FFFFFF', width: 0.75, dashType: 'dash', transparency: 25 }, objectName: 'CAPA_fita_pesponto' });
+      txt(s, Array(6).fill(marca + det).join('          '), { x: cx - comp / 2, y: cy - esp / 2, w: comp, h: esp, rotate: ang, fontSize: 11, charSpacing: 2, align: 'center', fontFace: 'Georgia' });
+    };
+    fita(6.67, 0.9, 15.2, 0.74, 3.6);
+    fita(2.7, 0.95, 8.4, 0.74, -22.5);
+    forma(s, [P(0, 7.4), C(2.5, 5.6, 5.0, 4.6, 8.2, 4.2), C(10.8, 3.9, 12.6, 2.8, W, 1.45), C(12.6, 3.3, 10.2, 4.7, 7.7, 5.3), C(5.2, 5.9, 2.2, 6.9, 0.8, H), P(0, H)], { cor: 'FFFFFF', transp: 68 });
+    forma(s, [P(0, 7.45), C(2.7, 5.8, 5.2, 4.8, 8.3, 4.4), C(10.9, 4.1, 12.7, 3.0, W, 1.55), C(12.6, 3.0, 10.4, 4.5, 7.8, 5.05), C(5.2, 5.7, 2.4, 6.8, 1.2, H), P(0, H)], { cor: 'FFFFFF', transp: 42 });
+    logo(s, e.logo, { x: 7.4, y: 4.45, w: 5.67, h: 0.9 }, { escuro: true, negativo: neg, alinhar: 'direita', rotulo: e.nome, nome: 'empresa' });
+    if (o.subtitulo) txt(s, primeiroNegrito(o.subtitulo, { fontSize: 20 }), { x: 6.0, y: 5.55, w: 7.07, h: 0.45, fontSize: 20, align: 'right' });
+    txt(s, o.titulo, { x: 3.5, y: 6.05, w: 9.57, h: 0.6, fontSize: caberPt(o.titulo, 30, 18, 9.5, 1, false), align: 'right', objectName: 'CAPA_TITULO' });
+    const rod = [nomesLinha(o), o.rodape].filter(Boolean).join('      ');
+    if (rod) txt(s, rod, { x: 3.5, y: 7.03, w: 9.57, h: 0.3, fontSize: 11, align: 'right' });
+  }
+
+  // 7. triangulos_fotos (ref: Vivara, CFA). ELEMENTO DA MARCA: 3 fotos do produto/ambiente da marca em janelas triangulares, em P&B.
+  function triangulosFotos(s, o) {
+    const neg = o.logosNegativos !== false, gE = mistura('4A4A4A', COR.escuro, 0.3), gM = mistura('9A9A9A', COR.dom, 0.1), ac = COR.dest, acl = tom(COR.dest, 0.35);
+    ret(s, 0, 0, W, H, gE); ret(s, 0, 1.58, W, 3.97, gM);
+    ret(s, 0, 0, W, 0.13, acl); ret(s, 0, H - 0.13, W, 0.13, acl);
+    ret(s, 0, 1.35, W, 0.06, tom(ac, -0.1)); ret(s, 0, 1.5, W, 0.05, acl); ret(s, 0, 5.58, W, 0.05, acl); ret(s, 0, 5.72, W, 0.06, tom(ac, -0.1));
+    const fotos = (o.fotos && o.fotos.length ? o.fotos : [o.imagem]).map(f => f ? resolverImagem(f, o.tema) : null);
+    const janelas = [[[535, 10], [1000, 10], [900, 235], [782, 388]], [[1037, 20], [1037, 420], [950, 420], [925, 255]], [[885, 285], [1037, 440], [1037, 568], [708, 568]]];
+    const focos = [[0.5, 0.5], [0.8, 0.4], [0.5, 0.7]];
+    janelas.forEach((j, i) => {
+      const arq = fotos[i] || (fotos.length === 1 ? fotos[0] : null);
+      fotoPoli(s, arq, pxs(j), { nome: 'j' + (i + 1), pb: o.fotosPB !== false, foco: o.foco && i === 0 ? o.foco : focos[i], fundoPh: mistura(gM, '000000', 0.2), descricao: o.imagemDescricao || 'foto do produto ou do ambiente da marca (' + (i + 1) + ' de 3)' });
+      forma(s, pxs(j), { aberto: false, linha: 1, corLinha: ac });
+    });
+    const e = empresasDe(o)[0];
+    logo(s, e.logo, { x: 0.45, y: 2.05, w: 6.1, h: 1.5 }, { escuro: true, negativo: neg, alinhar: 'esquerda', rotulo: e.nome, nome: 'empresa' });
+    s.addShape(S.LINE, { x: 0.35, y: 3.98, w: 6.35, h: 0, line: { color: ac, width: 1 } });
+    txt(s, o.titulo, { x: 0.45, y: 4.1, w: 6.0, h: 0.4, fontSize: caberPt(o.titulo, 16, 12, 6, 1, false), italic: true, objectName: 'CAPA_TITULO' });
+    const par = parceiroDe(o), ap = apresentadorDe(o);
+    logo(s, par, { x: 0.9, y: 4.95, w: 2.3, h: 0.6 }, { escuro: true, negativo: neg, alinhar: 'esquerda', rotulo: 'organizador', nome: 'parceiro' });
+    logo(s, ap, { x: 3.55, y: 4.9, w: 1.5, h: 0.7 }, { escuro: true, negativo: neg, rotulo: 'grupo', nome: 'apresentador' });
+    const ints = o.integrantes || [], lin = [];
+    for (let i = 0; i < ints.length; i += 2) lin.push(ints.slice(i, i + 2).join('   |   '));
+    if (o.rodape) lin.push(o.rodape);
+    if (lin.length) txt(s, lin.map((t, i) => ({ text: t, options: { breakLine: i < lin.length - 1 } })), { x: 5.5, y: 4.88, w: 4.3, h: 0.8, fontSize: 13, fontFace: 'Georgia' });
+  }
+
+  // 8. poligonos_centro (ref: 3R Petroleum). ELEMENTO DA MARCA: o conjunto de logos (empresa | grupo) centralizado; poligonos so enquadram.
+  function poligonosCentro(s, o) {
+    const neg = o.logosNegativos !== false, esc = COR.escuro, d = COR.dom, lc = tom(COR.dest, 0.3);
+    ret(s, 0, 0, W, H, esc, { objectName: grad([[0, tom(esc, -0.1), 100], [55, mistura(esc, d, 0.4), 100], [100, mistura(d, COR.dest, 0.35), 100]], 90) });
+    const pf = mistura(esc, d, 0.55);
+    forma(s, pxs([[0, 20], [168, 192], [0, 245]]), { cor: pf, transp: 15, linha: 0.75, corLinha: lc });
+    forma(s, pxs([[140, 148], [405, 0]]), { aberto: true, linha: 0.75, corLinha: lc });
+    forma(s, pxs([[168, 192], [0, 275]]), { aberto: true, linha: 0.75, corLinha: lc });
+    forma(s, pxs([[860, 438], [1037, 425], [1037, 578], [600, 578]]), { cor: pf, transp: 10, linha: 0.75, corLinha: lc });
+    const tit = o.subtitulo ? `${o.titulo} | ${o.subtitulo}` : o.titulo;
+    txt(s, tit, { x: 2.0, y: 2.62, w: 9.33, h: 0.6, fontSize: caberPt(tit, 30, 18, 9.2, 1, true), bold: true, align: 'center', objectName: 'CAPA_TITULO' });
+    const emp = empresasDe(o), e = emp[0], dir = emp[1] ? emp[1].logo : (parceiroDe(o) || apresentadorDe(o));
+    logo(s, e.logo, { x: 4.3, y: 3.4, w: 2.3, h: 0.95 }, { escuro: true, negativo: neg, alinhar: 'direita', rotulo: e.nome, nome: 'empresa' });
+    s.addShape(S.LINE, { x: 6.7, y: 3.38, w: 0, h: 0.95, line: { color: 'FFFFFF', width: 1 } });
+    logo(s, dir, { x: 6.85, y: 3.4, w: 2.3, h: 0.95 }, { escuro: true, negativo: neg, alinhar: 'esquerda', rotulo: emp[1] ? emp[1].nome : 'grupo', nome: 'direita' });
+    const l = []; if (nomesLinha(o)) l.push(nomesLinha(o)); (o.creditos || []).forEach(c => l.push(c[0] + ': ' + c[1])); if (o.rodape) l.push(o.rodape);
+    if (l.length) txt(s, l.map((t, i) => ({ text: t, options: { breakLine: i < l.length - 1 } })), { x: 0.22, y: 6.2, w: 9.5, h: 1.15, fontSize: 16, valign: 'bottom' });
+  }
+
+  // 9. foto_onda_base (ref: Mateus, Insper Asset). ELEMENTO DA MARCA: foto da fachada/loja/ativo da empresa em tela cheia.
+  function fotoOndaBase(s, o) {
+    const neg = o.logosNegativos !== false, d = COR.dom, esc = COR.escuro;
+    foto(s, o, { x: 0, y: 0, w: W, h: H }, { x: 3.5, y: 3.0, w: 6.3, descricao: 'foto da fachada, loja ou ativo da empresa (tela cheia)', fundo: mistura(esc, d, 0.5) });
+    ret(s, 0, 0, W, 4.0, esc, { objectName: grad([[0, esc, 88], [100, d, 0]], 90) });
+    forma(s, [P(0, 5.38), C(2.3, 5.2, 4.4, 5.62, 6.8, 6.0), C(9.2, 6.38, 11.6, 6.2, W, 5.45), P(W, H), P(0, H)], { cor: d, nome: grad([[0, tom(d, 0.12), 100], [100, d, 100]], 90) });
+    forma(s, [P(5.2, H), C(6.8, 6.75, 9.4, 6.7, W, 6.2), P(W, H)], { cor: esc, nome: grad([[0, d, 0], [100, esc, 100]], 0) });
+    txt(s, o.titulo, { x: 0.17, y: 5.5, w: 8.0, h: 0.48, fontSize: caberPt(o.titulo, 24, 16, 8, 1, true), bold: true, valign: 'bottom', objectName: 'CAPA_TITULO' });
+    if (o.subtitulo) txt(s, o.subtitulo, { x: 0.17, y: 5.98, w: 8.0, h: 0.4, fontSize: 18, valign: 'top' });
+    const rod = [nomesLinha(o), o.rodape].filter(Boolean).join('      ');
+    if (rod) txt(s, rod, { x: 0.17, y: 6.8, w: 8.8, h: 0.35, fontSize: 12 });
+    const e = empresasDe(o)[0], par = parceiroDe(o);
+    logo(s, e.logo, { x: 10.6, y: 6.75, w: 2.5, h: 0.6 }, { escuro: true, negativo: neg, alinhar: 'direita', rotulo: e.nome, nome: 'empresa' });
+    if (par) logo(s, par, { x: 11.6, y: 0.06, w: 1.55, h: 0.4 }, { escuro: true, negativo: neg, alinhar: 'direita', nome: 'parceiro' });
+  }
+
+  // 10. produto_onda (ref: Cimed, Private Equity Thesis). ELEMENTO DA MARCA: produto/embalagem recortado em PNG sem fundo, grande, a esquerda.
+  function produtoOnda(s, o) {
+    const neg = o.logosNegativos !== false, d = COR.dom, e = empresasDe(o)[0];
+    const arq = resolverImagem(o.imagem, o.tema);
+    if (arq) { imagem(s, { x: 0, y: 0, w: W, h: H, caminho: arq, foco: o.foco, nome: 'capa' }); ret(s, 0, 0, W, H, 'FFFFFF', { transparency: 22 }); ret(s, 0, 0, W, H, d, { transparency: 82 }); }
+    else { ret(s, 0, 0, W, H, tom(d, 0.88), { objectName: 'PH_capa_foto' }); txt(s, `[IMAGEM: ${o.imagemDescricao || 'foto aerea ou da fachada da empresa (fica esmaecida ao fundo)'}]`, { x: 5.5, y: 2.6, w: 6.5, h: 0.5, fontSize: 11, align: 'center', color: '7F7F7F' }); }
+    forma(s, [P(0, 5.9), C(0.9, 4.7, 3.6, 4.6, 6.0, 5.65), P(2.6, H), P(0, H)], { cor: d });
+    const obj = resolverImagem(o.objeto, null), box = { x: 0.7, y: 0.6, w: 3.6, h: 5.9 };
+    if (obj) { const b = caber(obj, box, 'centro'); s.addImage({ path: obj, x: b.x, y: box.y + box.h - b.h, w: b.w, h: b.h, objectName: 'IMG_capa_objeto' }); alertas.push('objeto da capa: use PNG recortado (sem fundo)'); }
+    else { s.addShape(S.RECTANGLE, { x: box.x + 0.4, y: box.y + 0.3, w: 2.8, h: 5.4, fill: { color: 'FFFFFF', transparency: 30 }, line: { color: 'A6A6A6', width: 1, dashType: 'dash' }, objectName: 'PH_capa_objeto' });
+      txt(s, `[IMAGEM: ${o.objetoDescricao || 'embalagem ou produto da marca recortado em PNG sem fundo'}]`, { x: box.x + 0.5, y: 3.0, w: 2.6, h: 1.0, fontSize: 10, align: 'center', color: '7F7F7F' }); }
+    forma(s, [P(1.65, 6.45), C(3.5, 6.0, 5.6, 5.55, 7.4, 5.55), C(9.2, 5.55, 10.5, 6.0, 11.2, 6.5), P(11.0, H), P(1.5, H)], { cor: GRAFITE });
+    forma(s, [P(10.4, H), C(10.4, 6.6, 11.5, 5.75, W, 5.7), P(W, H)], { cor: d });
+    forma(s, pxs([[880, 0], [1037, 0], [1037, 110]]), { cor: GRAFITE, linha: 1, corLinha: tom(d, 0.3) });
+    const ap = apresentadorDe(o);
+    logo(s, ap, { x: 12.15, y: 0.1, w: 0.9, h: 0.5 }, { escuro: true, negativo: neg, rotulo: 'grupo', nome: 'apresentador' });
+    const tit = o.subtitulo ? `${o.titulo} | ${o.subtitulo}` : o.titulo;
+    txt(s, tit, { x: 3.8, y: 6.85, w: 6.0, h: 0.4, fontSize: caberPt(tit, 20, 13, 6, 1, false), italic: true, align: 'center', objectName: 'CAPA_TITULO' });
+    const l = (o.integrantes || []).concat((o.creditos || []).map(c => c[0] + ': ' + c[1]), o.rodape ? [o.rodape] : []);
+    if (l.length) txt(s, l.map((t, i) => ({ text: t, options: { breakLine: i < l.length - 1 } })), { x: 10.55, y: 6.2, w: 2.55, h: 1.2, fontSize: 11.5, color: '1A1A1A', align: 'right', valign: 'bottom' });
+    if (e.logo) logo(s, e.logo, { x: 0.3, y: 0.15, w: 1.6, h: 0.5 }, { negativo: false, alinhar: 'esquerda', nome: 'empresa' });
+  }
+
+  const MODELOS = { foto_lateral: fotoLateral, circulo, ondas_foto: ondasFoto, recomendacao: recomendacaoCapa, radial,
+    fita_padrao: fitaPadrao, triangulos_fotos: triangulosFotos, poligonos_centro: poligonosCentro, foto_onda_base: fotoOndaBase, produto_onda: produtoOnda };
   function desenhar(s, o) {
     if (!o || !o.modelo) throw new Error(`deck.capa: informe "modelo" (${Object.keys(MODELOS).join(', ')}). Escolha pelo contexto do caso (references/capas.md).`);
     const f = MODELOS[o.modelo];
