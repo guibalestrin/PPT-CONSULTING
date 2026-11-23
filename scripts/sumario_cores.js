@@ -164,7 +164,9 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
   let identidadeFixa=null;
   function desenhar(s, estilo, itens, ativo, o={}) {
     if(!['circulos','pilulas','paralelogramos','cartoes'].includes(estilo))throw new Error('Modelo de sumario desconhecido: '+estilo);
-    o=Object.assign({},o,{foto:(o.imagem&&fs.existsSync(o.imagem))?o.imagem:null,composicao:o.composicao||'cheio',moldura:Object.assign({titulo:'centro',fios:true,logo:true},o.moldura||{})});
+    // moldura: true (desenha titulo centralizado, fios e logo) | false (nada) | objeto { titulo, texto, fios, logo } (sorteado em sorteio.js)
+    const mol=o.moldura===true?{titulo:'centro',fios:true,logo:true}:(o.moldura===false||o.moldura==null)?{titulo:'nenhum',fios:false,logo:false}:Object.assign({titulo:'nenhum',fios:false,logo:false},o.moldura);
+    o=Object.assign({},o,{foto:(o.imagem&&fs.existsSync(o.imagem))?o.imagem:null,composicao:o.composicao||'cheio',moldura:mol});
     if(!COMPOSICOES.includes(o.composicao))throw new Error('composicao de sumario desconhecida: '+o.composicao+'. Use: '+COMPOSICOES.join(', '));
     if(!['esquerda','centro','direita','nenhum'].includes(o.moldura.titulo))throw new Error('moldura.titulo do sumario: esquerda, centro, direita ou nenhum');
     const assinatura=JSON.stringify([estilo,o.fundo||cfg.fundoSumario||'escuro',o.fundo2||null,o.foto,o.composicao,o.moldura,o.logoEmpresa||null]);

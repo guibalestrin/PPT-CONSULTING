@@ -72,7 +72,7 @@ module.exports = function sortear(cfg, PROIB, cwd = process.cwd()) {
   if (comp === 'fotoDireitaFio' && r.estiloSumario !== 'circulos') throw new Error('composicaoSumario fotoDireitaFio so com estiloSumario circulos (com pilulas foi reprovada).');
   r.composicaoSumario = comp || (compValidas.includes(salvo.composicaoSumario) ? salvo.composicaoSumario : pick(compValidas));
   const ms = salvo.molduraSumario && TITULOS_SUMARIO.includes(salvo.molduraSumario.titulo) ? salvo.molduraSumario : null;
-  r.molduraSumario = Object.assign({}, ms || { titulo: pick(TITULOS_SUMARIO), fios: Math.random() < 0.35, logo: Math.random() < 0.5 }, cfg.molduraSumario || {});
+  r.molduraSumario = Object.assign({}, ms || { titulo: pick(['esquerda', 'centro', 'direita', 'nenhum', 'nenhum', 'nenhum']), fios: Math.random() < 0.3, logo: Math.random() < 0.3 }, cfg.molduraSumario || {});
   if (!TITULOS_SUMARIO.includes(r.molduraSumario.titulo)) throw new Error('molduraSumario.titulo: ' + TITULOS_SUMARIO.join(', '));
   r.origem.composicaoSumario = comp ? 'informado' : (r.composicaoSumario === salvo.composicaoSumario ? 'mantido' : 'sorteado');
   r.origem.molduraSumario = cfg.molduraSumario ? 'informado' : (ms ? 'mantido' : 'sorteado');

@@ -812,7 +812,7 @@ module.exports = function (cfg) {
     // sorteados/definidos uma vez e iguais em todos os sumarios do deck (feedback 23/11/2026)
     const imagem = o.imagem || cfg.imagemSumario || null;
     const visual = {fundo:o.fundo || cfg.fundoSumario || IDENTIDADE.dados.paleta.secundaria30, fundo2:o.fundo2 || null, imagem,
-      composicao: imagem ? (o.composicao || SORT.composicaoSumario) : 'cheio', moldura: Object.assign({}, SORT.molduraSumario, o.moldura || {}),
+      composicao: imagem ? (o.composicao || SORT.composicaoSumario) : 'cheio', moldura: typeof o.moldura === 'boolean' ? o.moldura : Object.assign({}, SORT.molduraSumario, o.moldura || {}),
       logoEmpresa: o.logoEmpresa || (cfg.logos && cfg.logos.analisada) || null};
     if (visualSumario && JSON.stringify(visual)!==JSON.stringify(visualSumario)) throw new Error('Manter o mesmo fundo, cores e imagem em todos os sumarios.');
     visualSumario = visual; o = Object.assign({},o,visual);
