@@ -7,11 +7,11 @@ const tom = (h,f) => {
 };
 const engine=require('./sumario_cores.js')({
   pres:{shapes:{}},COR:{dom:'C8102E',dest:'252B33',texto:'333333'},
-  F:'Montserrat',formas:{},tom,cfg:{}
+  F:'Montserrat',formas:{larguraTexto:()=>1},tom,cfg:{}
 });
 let total=0;
 for(const style of engine.ESTILOS){
-  const max=style==='cartoes'?5:10;
+  const max=engine.MAXN[style];
   for(let n=1;n<=max;n++){
     const rects=engine.layout(style,n);
     assert.equal(rects.length,n);

@@ -22,7 +22,9 @@ const OPCOES = {
 // sumarios de slide cheio, na cor fixa escolhida da paleta do projeto (sumario_cores.js), todos fieis a uma referencia (orizon_p012, agrion_p002, mabg_p002, vivara_p007)
 // VETADOS pelo usuario: 'cartoes' (16/11/2026: colunas altas so com numero e titulo, quase tudo vazio) e 'circulos' (22/11/2026: a
 // referencia orizon_p012 que deu origem a ele foi reprovada). Nao sao sorteados nem aceitos no config.
-const SUMARIOS = ['pilulas', 'paralelogramos'];
+const SUMARIOS = ['pilulas', 'paralelogramos', 'faixas_logo', 'hexagonos_arco', 'trilha_pergunta', 'losangos_celular'];
+// capacidade de itens de cada modelo (a lista do sumario precisa caber): o sorteio so considera os que comportam cfg.maxItensSumario
+const MAX_ITENS = { pilulas: 10, paralelogramos: 10, faixas_logo: 8, hexagonos_arco: 6, trilha_pergunta: 10, losangos_celular: 5 };
 const SUMARIOS_VETADOS = ['cartoes', 'circulos'];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -49,7 +51,7 @@ module.exports = function sortear(cfg, PROIB, cwd = process.cwd()) {
   });
   // Um único modelo por apresentação. Filtrar pela maior lista ANTES de sortear.
   const nMax = Math.max(1, Number(cfg.maxItensSumario) || 1);
-  const validos = SUMARIOS.filter(e => e !== 'cartoes' || nMax <= 5);
+  const validos = SUMARIOS.filter(e => (MAX_ITENS[e] || 10) >= nMax);
   const leg = Array.isArray(cfg.estilosSumario) ? [...new Set(cfg.estilosSumario)] : [];
   if (leg.length > 1) throw new Error('estilosSumario: use apenas UM modelo por apresentacao; nao alternar estilos.');
   const pedido = cfg.estiloSumario || leg[0];

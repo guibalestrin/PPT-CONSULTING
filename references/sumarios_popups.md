@@ -22,6 +22,16 @@ Estilos de `estilo` (todos **slide cheio, na cor fixa escolhida da paleta do pro
 - `'circulos'`: **VETADO pelo usuario em 22/11/2026** (a referencia Orizon p012 foi reprovada). Nao usar.
 - `'pilulas'` (Agrion p002): pilulas de contorno fino escalonadas, circulo com numeral a esquerda.
 - `'paralelogramos'` (M&A / mabg p002): barras inclinadas escalonadas, numeral e titulo em italico; aceita `imagem` de fundo (escurecida).
+- **Estilos "do caso" (23/11/2026)**: o usuario observou que as referencias **usam elementos do case para montar o sumario**. Cada um tem um slot do caso; sem o elemento, o estilo ainda desenha (placeholder) mas avise no resumo. Imagens em `assets/referencias/sumario/sum_*.jpg`.
+
+| Estilo | Referencia | Elemento do caso | Parametros | Capacidade |
+|---|---|---|---|---|
+| `'faixas_logo'` | Kepler Weber | inicial da marca em **contorno** (a forma da logo) e as faixas saindo dela, com a ponta em chevron | `marca` (config ou `deck.sumario`); sem marca, 2 formas inclinadas genericas | 8 itens, so titulo (1 linha a 16pt) |
+| `'hexagonos_arco'` | Rede D'Or (pilares) | hexagonos numerados sobre um arco, um por pilar da tese | itens `{ titulo, desc }` | 6 itens |
+| `'trilha_pergunta'` | Wine (transicao) | foto do caso ao fundo, painel curvo na cor da marca e curva pontilhada do item da vez ate a **pergunta** que a proxima secao responde | `imagem` (foto do caso), `pergunta` (ou `pergunta` no item) | 10 itens, titulos curtos |
+| `'losangos_celular'` | BTG (pilares) | losangos numerados + **mockup de celular com a tela do produto/app da empresa**, os pilares viram linhas | itens `{ titulo, desc, valor? }`, `mockup: { titulo, conta, rotuloValor }`, logo da empresa em `cfg.logos.analisada` | 5 itens |
+
+  O sorteio (`sorteio.js`) so considera os estilos que comportam `cfg.maxItensSumario`. Em `trilha_pergunta` e `losangos_celular` o slot e o que da cara de "feito para esse caso": foto real do negocio e dados reais do produto (`valor`); `[DADO: ...]` quando faltar.
 - `'cartoes'` (Vivara p007): ate 5 cartoes retos 01/02/03 lado a lado; o da vez em branco, os demais so contorno.
 Item da vez na cor de texto cheia com contorno grosso; os demais na dominante ajustada ao fundo (contraste >= 4 em fundo escuro, >= 3 em fundo claro). Sem `estilo`, `deck.sumario` reutiliza o modelo único salvo no projeto. Só o item ativo muda; paleta, fundo, posições e tipografia permanecem. A lista vem de `fluxos.js`.
 
@@ -59,4 +69,4 @@ Pop-up em mockup de tablet/busca e nota-pop-up dentro de gráfico.
 
 ## Validação do sumário
 
-Executar `node scripts/validar_sumarios.js` para verificar as 35 geometrias suportadas. O build rejeita troca de modelo ou fundo dentro do deck; o QA confere sobreposição de contêineres, fontes fixas e famílias de cor dos preenchimentos nativos. A revisão renderizada continua obrigatória para conferir o texto, as relações visuais e os quatro contraexemplos Huawei. Proporção 60/30/10 deve ser julgada visualmente no conjunto; o código não afirma medir uma porcentagem exata de pixels.
+Executar `node scripts/validar_sumarios.js` para verificar as 64 geometrias suportadas. O build rejeita troca de modelo ou fundo dentro do deck; o QA confere sobreposição de contêineres, fontes fixas e famílias de cor dos preenchimentos nativos. A revisão renderizada continua obrigatória para conferir o texto, as relações visuais e os quatro contraexemplos Huawei. Proporção 60/30/10 deve ser julgada visualmente no conjunto; o código não afirma medir uma porcentagem exata de pixels.

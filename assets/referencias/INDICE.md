@@ -42,7 +42,7 @@ Escolha a pasta pelo que a MENSAGEM do slide pede, nao pelo assunto do deck de o
 
 ## 3. Sumarios (`sumario/`)
 
-agrion_p002, ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, tech_p004
+agrion_p002, ijg5_p002, ijg7_p002, kepl3_p010, mabg_p002, tech_p004, **sum_faixas_logo, sum_hexagonos_arco, sum_trilha_pergunta, sum_losangos_celular** (23/11/2026: cada um monta o sumario com um elemento do caso, ver `references/sumarios_popups.md`)
 
 Detalhe de pop-up, faixa-pergunta e indice: `references/sumarios_popups.md`.
 

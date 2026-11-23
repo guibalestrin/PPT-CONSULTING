@@ -796,7 +796,7 @@ module.exports = function (cfg) {
   // ---------- sumario / transicao ----------
   // Sumario: um unico modelo, fundo, imagem e identidade no deck; apenas o item ativo muda.
   // Escolher no config estiloSumario. Qualquer override divergente por slide e rejeitado.
-  const SUME = require(path.join(AQUI, 'sumario_cores.js'))({ pres, COR, F, formas, tom, cfg });
+  const SUME = require(path.join(AQUI, 'sumario_cores.js'))({ pres, COR, F, formas, tom, cfg, py, tmp, temPillow });
   const usosSumario = [];
   function escolherEstiloSumario() { return SORT.estiloSumario; }
   let visualSumario = null;
