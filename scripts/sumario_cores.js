@@ -57,7 +57,9 @@ module.exports = function ({ pres, COR, F, formas, tom, cfg }) {
     formas.degrades[nome] = { ang: 45, stops: [[0, P.a, 100], [100, P.b, 100]] };
     s.addShape(S.RECTANGLE, { x: 0, y: 0, w: W, h: H, fill: { color: P.b }, line: { type: 'none' }, objectName: nome });
   }
+  // Moldura (titulo "Sumário", fios e logo) e OPCIONAL: so desenha com { moldura: true }. Nao e regra; era detalhe de uma referencia.
   function moldura(s, o) {
+    if (!o.moldura) return;
     T(s, o.titulo || 'Sumário', { x: 0.6, y: 0.42, w: W - 1.2, h: 0.62, fontSize: 26, bold: true, align: 'center', objectName: 'SUM_titulo' });
     s.addShape(S.LINE, { x: 0.6, y: 1.14, w: W - 1.2, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_topo' });
     s.addShape(S.LINE, { x: 0.6, y: 6.86, w: 10.3, h: 0, line: { color: P.fg, width: 0.75, transparency: 50 }, objectName: 'SUM_fio_base' });
