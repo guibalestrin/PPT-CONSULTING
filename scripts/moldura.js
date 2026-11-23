@@ -808,7 +808,12 @@ module.exports = function (cfg) {
     const ativo = o.ativo !== undefined ? o.ativo : (o.itens ? null : lista.indexOf(secao));
     const estilo = o.estilo || escolherEstiloSumario();
     if (estilo !== SORT.estiloSumario) throw new Error('O modelo de sumario e unico no deck: ' + SORT.estiloSumario);
-    const visual = {fundo:o.fundo || cfg.fundoSumario || IDENTIDADE.dados.paleta.secundaria30, fundo2:o.fundo2 || null, imagem:o.imagem || null};
+    // imagem (foto do assunto), composicao (fotoEsquerda|fotoDireita|fotoFundo|cheio), moldura ({ titulo, fios, logo }) e logoEmpresa:
+    // sorteados/definidos uma vez e iguais em todos os sumarios do deck (feedback 23/11/2026)
+    const imagem = o.imagem || cfg.imagemSumario || null;
+    const visual = {fundo:o.fundo || cfg.fundoSumario || IDENTIDADE.dados.paleta.secundaria30, fundo2:o.fundo2 || null, imagem,
+      composicao: imagem ? (o.composicao || SORT.composicaoSumario) : 'cheio', moldura: Object.assign({}, SORT.molduraSumario, o.moldura || {}),
+      logoEmpresa: o.logoEmpresa || (cfg.logos && cfg.logos.analisada) || null};
     if (visualSumario && JSON.stringify(visual)!==JSON.stringify(visualSumario)) throw new Error('Manter o mesmo fundo, cores e imagem em todos os sumarios.');
     visualSumario = visual; o = Object.assign({},o,visual);
 
@@ -817,7 +822,7 @@ module.exports = function (cfg) {
     garantirBarra(s);   // sem barra no slide; se for o 1o slide, a barra e desenhada e movida como na capa
     SUME.desenhar(s, estilo, itens, ativo, o);
     usosSumario.push({ secao, funcao, estilo });
-    console.log(`sumario (${funcao}) "${secao}": estilo ${estilo}`);
+    console.log(`sumario (${funcao}) "${secao}": estilo ${estilo}, composicao ${visual.composicao}, moldura ${JSON.stringify(visual.moldura)}`);
     return s;
   }
 

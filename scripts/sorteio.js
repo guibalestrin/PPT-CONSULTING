@@ -24,6 +24,10 @@ const OPCOES = {
 // referencia orizon_p012 que deu origem a ele foi reprovada). Nao sao sorteados nem aceitos no config.
 const SUMARIOS = ['pilulas', 'paralelogramos'];
 const SUMARIOS_VETADOS = ['cartoes', 'circulos'];
+// Feedback 23/11/2026: a foto do sumario nao fica sempre a direita, e titulo "Sumario", fios em cima/embaixo e logo nao sao obrigatorios.
+// Sorteados uma vez por deck (gravados em estilo_deck.json) e mantidos em todas as transicoes. Sem foto, a composicao vira 'cheio'.
+const COMPOSICOES_SUMARIO = ['fotoEsquerda', 'fotoDireita', 'fotoFundo'];
+const TITULOS_SUMARIO = ['esquerda', 'centro', 'direita', 'nenhum'];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const amostra = (a, n) => { const c = a.slice(), out = []; while (out.length < n && c.length) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]); return out; };
@@ -60,10 +64,19 @@ module.exports = function sortear(cfg, PROIB, cwd = process.cwd()) {
   r.sumarios = [r.estiloSumario];
   r.origem.sumarios = pedido ? 'informado' : (r.estiloSumario === antigo ? 'mantido/migrado' : 'sorteado');
   r.todosSumarios = SUMARIOS;
-  const grava = { estiloCabecalho: r.estiloCabecalho, estiloTitulo: r.estiloTitulo, corTitulo: r.corTitulo, corCabecalho: r.corCabecalho, sumarios: r.sumarios, estiloSumario: r.estiloSumario };
+  const comp = cfg.composicaoSumario;
+  if (comp && !COMPOSICOES_SUMARIO.concat('cheio').includes(comp)) throw new Error('composicaoSumario desconhecida: ' + comp + '. Use: ' + COMPOSICOES_SUMARIO.join(', ') + ', cheio');
+  r.composicaoSumario = comp || (COMPOSICOES_SUMARIO.includes(salvo.composicaoSumario) ? salvo.composicaoSumario : pick(COMPOSICOES_SUMARIO));
+  const ms = salvo.molduraSumario && TITULOS_SUMARIO.includes(salvo.molduraSumario.titulo) ? salvo.molduraSumario : null;
+  r.molduraSumario = Object.assign({}, ms || { titulo: pick(TITULOS_SUMARIO), fios: Math.random() < 0.35, logo: Math.random() < 0.5 }, cfg.molduraSumario || {});
+  if (!TITULOS_SUMARIO.includes(r.molduraSumario.titulo)) throw new Error('molduraSumario.titulo: ' + TITULOS_SUMARIO.join(', '));
+  r.origem.composicaoSumario = comp ? 'informado' : (r.composicaoSumario === salvo.composicaoSumario ? 'mantido' : 'sorteado');
+  r.origem.molduraSumario = cfg.molduraSumario ? 'informado' : (ms ? 'mantido' : 'sorteado');
+  const grava = { estiloCabecalho: r.estiloCabecalho, estiloTitulo: r.estiloTitulo, corTitulo: r.corTitulo, corCabecalho: r.corCabecalho, sumarios: r.sumarios, estiloSumario: r.estiloSumario, composicaoSumario: r.composicaoSumario, molduraSumario: r.molduraSumario };
   try { fs.writeFileSync(arq, JSON.stringify(grava, null, 2) + '\n'); } catch (e) { console.warn('AVISO: nao consegui gravar estilo_deck.json: ' + e.message); }
-  console.log('Sorteio do deck (estilo_deck.json): ' + Object.keys(grava).map(k => `${k}=${Array.isArray(grava[k]) ? grava[k].join('+') : grava[k]} [${r.origem[k === 'sumarios' || k === 'estiloSumario' ? 'sumarios' : k]}]`).join(' | '));
+  console.log('Sorteio do deck (estilo_deck.json): ' + Object.keys(grava).map(k => `${k}=${Array.isArray(grava[k]) ? grava[k].join('+') : grava[k]} [${r.origem[k === 'sumarios' || k === 'estiloSumario' ? 'sumarios' : k]}]`.replace('[object Object]', JSON.stringify(grava[k]))).join(' | '));
   return r;
 };
 module.exports.SUMARIOS = SUMARIOS;
+module.exports.COMPOSICOES_SUMARIO = COMPOSICOES_SUMARIO;
 module.exports.OPCOES = OPCOES;

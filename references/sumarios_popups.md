@@ -23,6 +23,7 @@ Estilos de `estilo` (todos **slide cheio, na cor fixa escolhida da paleta do pro
 - `'pilulas'` (Agrion p002): pilulas de contorno fino escalonadas, circulo com numeral a esquerda.
 - `'paralelogramos'` (M&A / mabg p002): barras inclinadas escalonadas, numeral e titulo em italico; aceita `imagem` de fundo (escurecida).
 - `'cartoes'` (Vivara p007): ate 5 cartoes retos 01/02/03 lado a lado; o da vez em branco, os demais so contorno.
+**Composição e moldura (23/11/2026):** a foto do assunto entra em `fotoEsquerda`, `fotoDireita` ou `fotoFundo` (sorteado; sem foto, `cheio`), sempre dissolvida no fundo por degradê, sem corte seco. Título "Sumário" (esquerda, centro, direita ou nenhum), fios em cima e embaixo e logo de quem apresenta são opcionais e sorteados uma vez por deck (`molduraSumario`). A logo da empresa analisada (`logos.analisada`) fica sobre a foto, numa sombra em degradê, sem faixa recortada. Referências: kepl3_p010 e ex_sumario (imagem à esquerda), mabg_p002 (foto de fundo), agrion_p002 (título grande à direita), tech_p004 (sem fios).
 Item da vez na cor de texto cheia com contorno grosso; os demais na dominante ajustada ao fundo (contraste >= 4 em fundo escuro, >= 3 em fundo claro). Sem `estilo`, `deck.sumario` reutiliza o modelo único salvo no projeto. Só o item ativo muda; paleta, fundo, posições e tipografia permanecem. A lista vem de `fluxos.js`.
 
 Slides de seção escuros só com título (Appendix, Q&A) seguem o padrão de divisores da capa; não são sumário.
